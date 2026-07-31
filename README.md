@@ -53,18 +53,32 @@ Private deployments should maintain their own configuration file separately.
 ### Example
 
 ```yaml
-calendar_name: Scouting Calendar
+---
+calendar_name: My Combined Calendar
 
 calendars:
-  - name: 1st Malden Scouts
-    prefix: Scouts
-    url: https://example.com/scouts.ics
+  - name: Work Calendar
+    url: https://example.com/work-calendar.ics
 
-  - name: Lucy DofE Bronze Programme
-    prefix: LucyDofE
-    url: https://example.com/dofe.ics
+  - name: Family Calendar
+    prefix: Family
+    url: https://example.com/family-calendar.ics
+
+  - name: Events Calendar
+    prefix: Events
+    url: https://example.com/events-calendar.ics
 ```
 
+The minimum configuration for each calendar source is:
+
+- `name` - the display name of the source calendar
+- `url` - the ICS calendar URL
+
+Optional settings can be used to customise processing, such as:
+
+- `prefix` - optional text added to event titles to identify the source calendar
+
+The configuration file is intentionally kept separate from the codebase. This allows the calmerge package to be public while keeping personal calendar sources private.
 
 ## Repository separation
 
@@ -122,25 +136,34 @@ make distclean
 
 ## Deployment and automation
 
-The calendar generation process can be automated using GitHub Actions.
+The `calmerge` package is designed to separate calendar processing code from calendar configuration and generated output.
 
-A deployment uses the public `calmerge` code repository together with a private configuration repository. GitHub Actions checks out both repositories, installs the `calmerge` package, loads the private configuration, and generates the merged calendar.
+The public repository contains the reusable `calmerge` code. A separate private repository can contain:
 
+- calendar source configuration
+- private calendar URLs
+- generated calendar output
+- deployment automation
+
+This allows the `calmerge` package to be shared without exposing personal calendar sources.
 
 ### GitHub Actions
 
-GitHub Actions regularly refreshes the source calendars and generates the merged calendar. The workflow runs on a schedule, downloads the configured source calendars, merges the events into `calendars/merged.ics`, checks whether the generated calendar has meaningful changes, and commits updated calendar files back to the repository only when required. The workflow can also be run manually from the GitHub Actions interface.
+A private configuration repository can use GitHub Actions to periodically run `calmerge`.
 
-Calendar refresh frequency is controlled by the workflow schedule configuration.
+A typical workflow:
 
-### Cloudflare publishing
+1. Checks out the private configuration repository.
+2. Installs the `calmerge` package from GitHub.
+3. Loads the private `calendars.yaml` configuration.
+4. Downloads and merges the configured ICS calendars.
+5. Commits the generated calendar output if it has changed.
 
-Cloudflare publishes the generated calendar as a static file. When changes are committed to the repository, Cloudflare detects the updated repository state, triggers a new deployment, and publishes `calendars/merged.ics`. Calendar applications can then subscribe to the published URL.
+The refresh frequency is controlled by the workflow schedule configuration.
 
-This separates calendar generation from publishing:
+### Publishing
 
-- GitHub Actions handles fetching, processing, and validating calendar data.
-- Cloudflare handles hosting and serving the final calendar file.
+The generated calendar can then be published using a static hosting provider such as Cloudflare Pages or another web hosting service.
 
 ### Deployment flow
 

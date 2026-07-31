@@ -1,6 +1,7 @@
+---
 name: Build Calendar
 
-on:
+"on":
   push:
     branches:
       - main

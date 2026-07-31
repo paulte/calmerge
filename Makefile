@@ -1,4 +1,4 @@
-.PHONY: all format lint check clean run test precommit distclean
+.PHONY: all format lint check clean test precommit distclean
 
 all: check
 
@@ -38,9 +38,6 @@ clean:
 	rm -rf tests/__pycache__
 	rm -rf __pycache__
 	rm -rf src/calmerge/__pycache__
-
-run:
-	calmerge
 
 test:
 	pytest

@@ -1,0 +1,18 @@
+# Python
+*.py text eol=lf
+
+# Shell
+*.sh text eol=lf
+
+# YAML
+*.yaml text eol=lf
+*.yml  text eol=lf
+
+# Markdown
+*.md text eol=lf
+
+# GitHub Actions
+.github/** text eol=lf
+
+# iCalendar files - preserve exactly
+*.ics -text

@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "calmerge"
+version = "0.1.0"
+description = "Merge ICS calendars into a single calendar"
+requires-python = ">=3.13"
+dependencies = [
+    "icalendar",
+    "requests",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+    "yamllint",
+    "actionlint",
+]
+
+[project.scripts]
+calmerge = "calmerge.cli:main"
+
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "src"
+]
+
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.format]
+preview = true

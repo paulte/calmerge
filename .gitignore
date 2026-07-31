@@ -219,3 +219,14 @@ __marimo__/
 
 calendars/
 calendars.yaml
+
+# Vim swap files
+*.swp
+*.swo
+*.swn
+
+# Vim backup files
+*~
+
+# Vim undo files (if persistent undo is enabled)
+*.un~

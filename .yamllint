@@ -1,8 +1,8 @@
 ---
 ignore: |
   venv/*
-
 extends: default
-
 rules:
   line-length: disable
+  document-start:
+    present: true

@@ -1,8 +1,12 @@
 ---
 ignore: |
   venv/*
+
 extends: default
+
 rules:
   line-length: disable
   document-start:
     present: true
+  comments:
+    min-spaces-from-content: 1

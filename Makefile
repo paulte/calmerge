@@ -1,4 +1,6 @@
-.PHONY: format lint check clean run test precommit
+.PHONY: all format lint check clean run test precommit distclean
+
+all: check
 
 format:
 	ruff format .
@@ -8,6 +10,9 @@ lint:
 	ruff check .
 	yamllint .
 	actionlint
+
+precommit:
+	pre-commit run --all-files
 
 check:
 	ruff format --check .
@@ -34,12 +39,8 @@ clean:
 	rm -rf __pycache__
 	rm -rf src/calmerge/__pycache__
 
-
 run:
 	calmerge
 
 test:
 	pytest
-
-precommit:
-	pre-commit run --all-files

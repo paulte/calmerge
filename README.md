@@ -14,18 +14,10 @@ cd calmerge
 python3 -m venv venv
 . venv/bin/activate
 python3 -m pip install --upgrade pip
-pip i nstall .
+pip install .
 ```
 
 ### Development
-
-Requirements:
-
-- Python 3.13+
-- pytest
-- ruff
-- yamllint
-- actionlint
 
 ```shell
 pip install -r requirements-dev.txt

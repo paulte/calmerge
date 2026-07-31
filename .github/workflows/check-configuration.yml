@@ -28,7 +28,7 @@ jobs:
 
       - name: Validate calendars.yaml
         run: |
-          python -c "from calmerge.config import load_config; load_config('calendars.yaml')"
+          python -c "from pathlib import Path; from calmerge.config import load_config; load_config(Path('calendars.yaml'))"
 
       - name: Install yamllint
         run: |

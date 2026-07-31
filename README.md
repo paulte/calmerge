@@ -42,6 +42,7 @@ examples/calendars.example.yaml
 ```
 
 Private deployments should maintain their own configuration file separately.
+
 ### Example
 
 ```yaml
@@ -112,16 +113,19 @@ make format
 ```
 
 Run Lint checks
+
 ```shell
 make lint
 ```
 
 Run the full validation suite:
+
 ```shell
 make check
 ```
 
 Clean generated files:
+
 ```shell
 make distclean
 ```
@@ -146,10 +150,10 @@ A private configuration repository can use GitHub Actions to periodically run `c
 A typical workflow:
 
 1. Checks out the private configuration repository.
-2. Installs the `calmerge` package from GitHub.
-3. Loads the private `calendars.yaml` configuration.
-4. Downloads and merges the configured ICS calendars.
-5. Commits the generated calendar output if it has changed.
+1. Installs the `calmerge` package from GitHub.
+1. Loads the private `calendars.yaml` configuration.
+1. Downloads and merges the configured ICS calendars.
+1. Commits the generated calendar output if it has changed.
 
 The refresh frequency is controlled by the workflow schedule configuration.
 

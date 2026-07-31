@@ -1,7 +1,7 @@
 ---
 name: Build Calendar
 
-on:
+"on":
   workflow_call:
 
 permissions:
@@ -48,8 +48,15 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          git show HEAD:calendars/merged.ics | sed '/^DTSTAMP:/d' > /tmp/old.ics || true
+          sed '/^DTSTAMP:/d' calendars/merged.ics > /tmp/new.ics
+
+          if cmp -s /tmp/old.ics /tmp/new.ics; then
+            echo "No meaningful calendar changes"
+            exit 0
+          fi
+
           git add calendars/merged.ics
 
-          git diff --cached --quiet || git commit -m "Update merged calendar"
-
+          git commit -m "Update merged calendar"
           git push

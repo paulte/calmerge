@@ -99,11 +99,59 @@ def test_load_source_calendar_uses_cache_after_304(tmp_path):
     assert str(events[0]["SUMMARY"]) == "Test Event"
 
 
+def test_load_source_calendar_downloads_and_caches_new_payload(tmp_path):
+    cache = CalendarCache(tmp_path)
+    session = MockSession(
+        MockResponse(
+            200,
+            ICAL,
+            {
+                "ETag": '"fresh-etag"',
+                "Last-Modified": "Mon, 01 Jan 2024 00:00:00 GMT",
+            },
+        )
+    )
+
+    calendar = load_source_calendar(
+        session,
+        {
+            "name": "test-calendar",
+            "url": "https://example.com/calendar.ics",
+        },
+        cache,
+    )
+
+    events = list(calendar.walk("VEVENT"))
+    assert len(events) == 1
+    assert cache.load("test-calendar") == ICAL
+    assert cache.load_metadata("test-calendar") == {
+        "etag": '"fresh-etag"',
+        "last_modified": "Mon, 01 Jan 2024 00:00:00 GMT",
+    }
+
+
 def test_load_source_calendar_raises_when_cache_missing_after_failed_download(
     tmp_path,
 ):
     cache = CalendarCache(tmp_path)
     session = MockSession(MockResponse(500, b"", {}))
+
+    with pytest.raises(RuntimeError, match="No cached copy available"):
+        load_source_calendar(
+            session,
+            {
+                "name": "test-calendar",
+                "url": "https://example.com/calendar.ics",
+            },
+            cache,
+        )
+
+
+def test_load_source_calendar_raises_when_304_response_has_no_cached_calendar(
+    tmp_path,
+):
+    cache = CalendarCache(tmp_path)
+    session = MockSession(MockResponse(304, b"", {}))
 
     with pytest.raises(RuntimeError, match="No cached copy available"):
         load_source_calendar(
@@ -142,8 +190,37 @@ def test_get_event_start_handles_date_and_missing_value():
     event.add("dtstart", date(2026, 7, 25))
     assert get_event_start(event) == datetime(2026, 7, 25, 0, 0, tzinfo=UTC)
 
+    naive_datetime_event = Event()
+    naive_datetime_event.add(
+        "dtstart",
+        datetime(2026, 7, 25, 12, 0, tzinfo=UTC),
+    )
+    assert get_event_start(naive_datetime_event) == datetime(
+        2026,
+        7,
+        25,
+        12,
+        0,
+        tzinfo=UTC,
+    )
+
     event_without_start = Event()
     assert get_event_start(event_without_start) == datetime.max.replace(tzinfo=UTC)
+
+
+def test_process_event_generates_missing_uid_and_dtstamp():
+    event = Event()
+    event.add("summary", "Missing UID Event")
+    seen_events = set()
+    source = {"name": "Family"}
+
+    processed = process_event(event, source, seen_events)
+
+    assert processed is not None
+    assert "UID" in processed
+    assert "DTSTAMP" in processed
+    assert str(processed["SUMMARY"]) == "Missing UID Event"
+    assert str(processed["X-SOURCE-CALENDAR"]) == "Family"
 
 
 def test_merge_calendars_returns_sorted_output(monkeypatch, tmp_path):

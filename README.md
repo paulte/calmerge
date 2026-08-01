@@ -59,26 +59,24 @@ A cloud flare example follows:
 - Authenticate and select your GitHub account and repository
 - select your calmerge.config repository
 - Enter the following under Build command, replacing with your own random GUID:
-
-````bash
-mkdir -p public/ac1f7e02-b0df-4596-9ebb-259c8c775412 && cp calendars/merged.ics public/ac1f7e02-b0df-4596-9ebb-259c8c775412/events.ics
-- Once the build has complete, there will be a "You can preview your project at...  Click on this link and append the ```public/ac1f7e02-b0df-4596-9ebb-259c8c775412/events.ics``` path.
+  `mkdir -p public/ac1f7e02-b0df-4596-9ebb-259c8c775412 && cp calendars/merged.ics public/ac1f7e02-b0df-4596-9ebb-259c8c775412/events.ics`
+- Once the build has complete, there will be a "You can preview your project at... Click on this link and append the `public/ac1f7e02-b0df-4596-9ebb-259c8c775412/events.ics` path.
 - your browser should download the merged ics file.
-- Copy this URL and subscribe in your calendar apps, for example ```https://calmerge-config.pages.dev/public/ac1f7e02-b0df-4596-9ebb-259c8c775412/events.ics`
+- Copy this URL and subscribe in your calendar apps, for example `https://calmerge-config.pages.dev/public/ac1f7e02-b0df-4596-9ebb-259c8c775412/events.ics`
 
-At this point, your configuration is complete.  As one last check, perform a dummy change such as changing the prefix for a calendar.
-- Check GitHub actions - you should notice a recently executed workflow running to green and notice an updated  ```calendars/merged.ics``` file in the repo
-- Check Cloudflare.  You should notice the git commit being absorbed and the merged.ics calendar being published
+At this point, your configuration is complete. As one last check, perform a dummy change such as changing the prefix for a calendar.
+
+- Check GitHub actions - you should notice a recently executed workflow running to green and notice an updated `calendars/merged.ics` file in the repo
+- Check Cloudflare. You should notice the git commit being absorbed and the merged.ics calendar being published
 
 ## Ongoing calendar change.
 
-Pushing a new config will generate a new ```calendar/merged.ics```
+Pushing a new config will generate a new `calendar/merged.ics`
 via github actions, as will any change detected in subscribed
-calendars.  As such, it will be common for the github repo to be
-ahead of your local copy.  As such, always start any change with a ```git pull --rebase```
+calendars. As such, it will be common for the github repo to be
+ahead of your local copy. As such, always start any change with a `git pull --rebase`
 
-Once changes have been made, run a ```make check``` before committing files and pushing back to your repo
-
+Once changes have been made, run a `make check` before committing files and pushing back to your repo
 
 # Developing code for calmerge
 
@@ -91,7 +89,7 @@ pip install --upgrade pip
 pip install -r requirements-dev.txt
 pip install -e .
 pre-commit install
-````
+```
 
 Optional development tooling:
 

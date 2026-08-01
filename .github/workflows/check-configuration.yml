@@ -16,17 +16,31 @@ jobs:
       - name: Checkout configuration
         uses: actions/checkout@v7
 
+      - name: Check configuration exists
+        id: config
+        run: |
+          if [ -f calendars.yaml ]; then
+            echo "has_config=true" >> "$GITHUB_OUTPUT"
+            echo "Found calendars.yaml"
+          else
+            echo "has_config=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No calendars.yaml found. Copy calendars.example.yaml to calendars.yaml and configure your calendars."
+          fi
+
       - name: Set up Python
+        if: steps.config.outputs.has_config == 'true'
         uses: actions/setup-python@v7
         with:
           python-version: "3.14"
 
       - name: Install calmerge
+        if: steps.config.outputs.has_config == 'true'
         run: |
           python -m pip install --upgrade pip
           python -m pip install git+https://github.com/paulte/calmerge.git
 
       - name: Validate calendars.yaml
+        if: steps.config.outputs.has_config == 'true'
         run: |
           python -c "from pathlib import Path; from calmerge.config import load_config; load_config(Path('calendars.yaml'))"
 

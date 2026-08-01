@@ -20,6 +20,14 @@ jobs:
       - name: Checkout configuration
         uses: actions/checkout@v7
 
+      - name: Check configuration exists
+        run: |
+          if [ ! -f calendars.yaml ]; then
+            echo "Missing calendars.yaml"
+            echo "Copy calendars.example.yaml to calendars.yaml and configure your calendars"
+            exit 1
+          fi
+
       - name: Restore calendar cache
         uses: actions/cache@v6
         with:

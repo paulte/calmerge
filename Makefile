@@ -1,6 +1,6 @@
 .PHONY: all format lint check clean test precommit distclean
 
-all: check precommit
+all: format  check
 
 format:
 	ruff format .

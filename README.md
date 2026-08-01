@@ -60,7 +60,8 @@ A Cloudflare example follows:
 - Select your calmerge.config repository
 - Enter the following under Build command, replacing with your own random GUID:
   `mkdir -p public/ac1f7e02-b0df-4596-9ebb-259c8c775412 && cp calendars/merged.ics public/ac1f7e02-b0df-4596-9ebb-259c8c775412/events.ics`
-- Once the build has complete, there will be a "You can preview your project at... Click on this link and append the `public/ac1f7e02-b0df-4596-9ebb-259c8c775412/events.ics` path.
+- Once the build has complete, there will be a "You can preview your project at...
+- Click on this link and append the `public/ac1f7e02-b0df-4596-9ebb-259c8c775412/events.ics` path.
 - Your browser should download the merged ics file.
 - Copy this URL and subscribe in your calendar apps, for example `https://calmerge-config.pages.dev/public/ac1f7e02-b0df-4596-9ebb-259c8c775412/events.ics`
 

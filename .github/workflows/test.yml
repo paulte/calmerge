@@ -23,12 +23,18 @@ jobs:
           pip install -e .
       - name: Install actionlint
         uses: raven-actions/actionlint@v2
-      - name: Run repo validation via make
-        run: make check
+      - name: Run tests with coverage
+        run: |
+          pytest \
+            --cov=src/calmerge \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --cov-report=html
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
+          fail_ci_if_error: true
           path: |
             coverage.xml
             coverage-report/

@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Checkout configuration
-        uses: actions/checkout@v7
+        uses: actions/checkout@v5
 
       - name: Check configuration exists
         id: config
@@ -26,18 +26,13 @@ jobs:
           if [ -f calendars.yaml ]; then
             echo "configured=true" >> "$GITHUB_OUTPUT"
             echo "Found calendars.yaml"
-
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
             echo "::notice::No calendars.yaml found. Copy calendars.example.yaml to calendars.yaml and configure your calendars."
           fi
 
-      - name: Generate merged calendar
-        if: steps.config.outputs.configured == 'true'
-        run: |
-          calmerge --config calendars.yaml
       - name: Restore calendar cache
-        uses: actions/cache@v6
+        uses: actions/cache@v4
         with:
           path: .cache
           key: calendar-cache-${{ runner.os }}
@@ -45,7 +40,7 @@ jobs:
             calendar-cache-${{ runner.os }}-
 
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@v6
         with:
           python-version: "3.14"
 

@@ -4,7 +4,7 @@
 
 The project is designed around a simple idea:
 
-- **This repository** contains the reusable application.
+- **This repository** https://github.com/paulte/calmerge/ contains the reusable application.
 - **Your repository** contains your private configuration, generated calendars and deployment automation.
 
 This keeps calendar URLs and personal data out of the public codebase.
@@ -13,7 +13,36 @@ This keeps calendar URLs and personal data out of the public codebase.
 
 # Installation
 
-Create a virtual environment and install directly from GitHub:
+This setup assumes you have already setup ssh key based auth for your github account.
+
+* Create a private repo within your github account.  For example, ```calmerge.config```
+* Set visibility Private and do not initialise the repo with any files.
+* You will end up with a repo name such as ```git@github.com:paulte/calmerge.config.git```
+
+Clone the example repository:
+
+```bash
+git clone https://github.com/paulte/calmerge.exampleprivaterepo.git calmerge.config
+cd calmerge.config
+```
+
+Repoint remote to your new repo:
+
+```bash
+git remote set-url origin git@github.com:paulte/calmerge.config
+```
+
+Push the example config into your repo:
+```bash
+git push -u origin main
+```
+
+* Navigate to the example private repo: https://github.com/paulte/calmerge.exampleprivaterepo
+* Click on the fork icon
+* Give the repo a new local name within your account, such as ```calmergeprivate```
+* Click on create fork
+
+Create a virtual environment and install directly from GitHub
 
 ```shell
 python3 -m venv venv

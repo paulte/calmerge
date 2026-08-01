@@ -63,6 +63,16 @@ At this point, your configuration is complete.  As one last check, perform a dum
 - Check GitHub actions - you should notice a recently executed workflow running to green and notice an updated  ```calendars/merged.ics``` file in the repo
 - Check Cloudflare.  You should notice the git commit being absorbed and the merged.ics calendar being published
 
+## Ongoing calendar change.
+
+Pushing a new config will generate a new ```calendar/merged.ics```
+via github actions, as will any change detected in subscribed
+calendars.  As such, it will be common for the github repo to be
+ahead of your local copy.  As such, always start any change with a ```git pull --rebase```
+
+Once changes have been made, run a ```make check``` before committing files and pushing back to your repo
+
+
 # Developing code for calmerge
 
 ```bash

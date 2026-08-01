@@ -1,0 +1,41 @@
+---
+name: Sync Labels
+
+"on":
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  issues: write
+
+jobs:
+  sync-labels:
+    name: Sync repository labels
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create or update labels
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          create_or_update() {
+            local name="$1"
+            local colour="$2"
+            local description="$3"
+
+            gh label create "$name" \
+              --color "$colour" \
+              --description "$description" \
+              --force
+          }
+
+          create_or_update "bug" "d73a4a" "Something isn't working"
+          create_or_update "enhancement" "a2eeef" "New feature or improvement"
+          create_or_update "documentation" "0075ca" "Documentation changes"
+          create_or_update "dependencies" "0366d6" "Dependency updates"
+          create_or_update "github-actions" "5319e7" "GitHub Actions and CI changes"
+          create_or_update "automated" "6f42c1" "Created or updated automatically"
+          create_or_update "maintenance" "fbca04" "General maintenance and housekeeping"
+          create_or_update "question" "d876e3" "Further information requested"

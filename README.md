@@ -50,18 +50,18 @@ Once the changes have been pushed, a GitHub action will automatically trigger to
 
 Once your config repository is working, choose a mechanism to publicly present the calendar under an obfuscated name.
 
-A cloud flare example follows:
+A Cloudflare example follows:
 
-- create a free cloud flare account and login
-- under works and pages, select Create application
+- Create a free Cloudflare account and login
+- Under works and pages, select Create application
 - Click on "Looking to deploy pages? Get Started"
 - Import an existing Git repository
 - Authenticate and select your GitHub account and repository
-- select your calmerge.config repository
+- Select your calmerge.config repository
 - Enter the following under Build command, replacing with your own random GUID:
   `mkdir -p public/ac1f7e02-b0df-4596-9ebb-259c8c775412 && cp calendars/merged.ics public/ac1f7e02-b0df-4596-9ebb-259c8c775412/events.ics`
 - Once the build has complete, there will be a "You can preview your project at... Click on this link and append the `public/ac1f7e02-b0df-4596-9ebb-259c8c775412/events.ics` path.
-- your browser should download the merged ics file.
+- Your browser should download the merged ics file.
 - Copy this URL and subscribe in your calendar apps, for example `https://calmerge-config.pages.dev/public/ac1f7e02-b0df-4596-9ebb-259c8c775412/events.ics`
 
 At this point, your configuration is complete. As one last check, perform a dummy change such as changing the prefix for a calendar.

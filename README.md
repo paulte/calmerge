@@ -149,7 +149,7 @@ calmerge/
 ```
 .
 ├── calendars.yaml
-├── calendars/
+├── calendars/merged.ics
 └── .github/workflows/
 ```
 

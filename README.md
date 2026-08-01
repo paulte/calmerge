@@ -82,6 +82,8 @@ Once changes have been made, run a `make check` before committing files and push
 
 # Developing code for calmerge
 
+Use the repository's `Makefile` as the supported development workflow. Contributors should run the standard `make` targets locally, and the GitHub Actions workflow uses the same validation path so local and CI behavior stay aligned.
+
 ```bash
 git clone https://github.com/paulte/calmerge.git
 cd calmerge
@@ -99,50 +101,26 @@ Optional development tooling:
 brew install actionlint
 ```
 
-Format code:
+Common commands:
 
 ```bash
 make format
-```
-
-Run linting:
-
-```bash
 make lint
-```
-
-Run the full validation suite:
-
-```bash
+make test
 make check
-```
-
-Run the local test suite from the project venv:
-
-```bash
-source venv/bin/activate
-python -m pytest -q
-```
-
-Measure coverage for the key modules:
-
-```bash
-source venv/bin/activate
-python -m coverage run -m pytest -q
-python -m coverage report -m src/calmerge/cli.py src/calmerge/config.py src/calmerge/cache.py
-```
-
-Remove generated files:
-
-```bash
+make coverage
+make pre-commit
 make distclean
 ```
 
-Check all repo files before committing
+Suggested workflow:
 
-```bash
-make pre-commit
-```
+1. Run `make format` to apply auto-formatting and safe lint fixes.
+1. Run `make lint` to validate style, YAML, and GitHub workflow syntax.
+1. Run `make test` to execute the coverage-gated pytest suite.
+1. Run `make check` before opening a pull request or committing changes.
+
+The GitHub Actions workflow is wired to the same Makefile targets, so contributors should prefer `make` over direct manual `pytest` or `coverage` commands.
 
 ______________________________________________________________________
 

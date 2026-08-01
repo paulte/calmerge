@@ -34,7 +34,7 @@ git push
 Copy the example calendar to the main configuration, update to include the ics files you wish to merge and then push back
 Move `calendars.example.yaml` to `calendars.yaml`, adjust to adding all required calendars and commit
 
-````bash
+```bash
 cp calendars.example.yaml calendars.yaml
 <edit calendars.yaml>
 git add calendars.yaml
@@ -44,21 +44,23 @@ git commit -m"initial configuration"
 git push
 ```
 
-Note, when doing the ```git commit```, pre-commit will validate the config file before allowing a remote push
+Note, when doing the `git commit`, pre-commit will validate the config file before allowing a remote push
 
-Once the changes have been pushed, a GitHub action will automatically trigger to download, merge and create a ```calendars/merged.ics``` file within your repo.  Navigate to your calmerge.config repository on GitHub, click on Actions and you should see a recently executed green workflow.
+Once the changes have been pushed, a GitHub action will automatically trigger to download, merge and create a `calendars/merged.ics` file within your repo. Navigate to your calmerge.config repository on GitHub, click on Actions and you should see a recently executed green workflow.
 
 Once your config repository is working, choose a mechanism to publicly present the calendar under an obfuscated name.
 
 A cloud flare example follows:
+
 - create a free cloud flare account and login
 - under works and pages, select Create application
-- Click on "Looking to deploy pages?   Get Started"
+- Click on "Looking to deploy pages? Get Started"
 - Import an existing Git repository
 - Authenticate and select your GitHub account and repository
 - select your calmerge.config repository
 - Enter the following under Build command, replacing with your own random GUID:
-```bash
+
+````bash
 mkdir -p public/ac1f7e02-b0df-4596-9ebb-259c8c775412 && cp calendars/merged.ics public/ac1f7e02-b0df-4596-9ebb-259c8c775412/events.ics
 - Once the build has complete, there will be a "You can preview your project at...  Click on this link and append the ```public/ac1f7e02-b0df-4596-9ebb-259c8c775412/events.ics``` path.
 - your browser should download the merged ics file.

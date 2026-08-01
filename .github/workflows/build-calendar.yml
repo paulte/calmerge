@@ -58,7 +58,7 @@ jobs:
         if: steps.config.outputs.configured == 'true'
         run: |
           calmerge --config calendars.yaml
-          
+
       - name: Commit updated calendar
         if: steps.config.outputs.configured == 'true' && github.event_name != 'pull_request'
         run: |

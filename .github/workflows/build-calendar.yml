@@ -25,8 +25,11 @@ jobs:
         run: |
           if [ -f calendars.yaml ]; then
             echo "configured=true" >> "$GITHUB_OUTPUT"
+            echo "Found calendars.yaml"
+
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No calendars.yaml found. Copy calendars.example.yaml to calendars.yaml and configure your calendars."
           fi
 
       - name: Generate merged calendar

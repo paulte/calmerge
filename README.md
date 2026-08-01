@@ -2,10 +2,10 @@
 
 `calmerge` downloads multiple iCalendar (ICS) feeds, merges them into a single calendar, and writes the result as a new ICS file.
 
-The project is designed around a simple idea:
+The project is structured as follows:
 
-- **This repository** https://github.com/paulte/calmerge/ contains the reusable application.
-- **Your repository** contains your private configuration, generated calendars and deployment automation.
+- **This repository** https://github.com/paulte/calmerge/ contains the reusable application.  You will not need to reference or clone this repo
+- **Your repository**  cloned from https://github.com/paulte/calmerge.exampleprivaterepo.  Your repo contains your private configuration and will reference the above calmerge code via GitHub actions.
 
 This keeps calendar URLs and personal data out of the public codebase.
 
@@ -17,39 +17,53 @@ This setup assumes you have already setup ssh key based auth for your github acc
 
 * Create a private repo within your github account.  For example, ```calmerge.config```
 * Set visibility Private and do not initialise the repo with any files.
-* You will end up with a repo name such as ```git@github.com:paulte/calmerge.config.git```
+* You will end up with a repo name such as ```git@github.com:yourgithubaccount/calmerge.config.git```
 
-Clone the example repository:
+Set your ```GITHUBACCOUNT``` variable, clone the example config and then push back to your private repo:
 
 ```bash
+export GITHUBACCOUNT="yourgithubaccount"
 git clone https://github.com/paulte/calmerge.exampleprivaterepo.git calmerge.config
 cd calmerge.config
+git remote set-url origin git@github.com:${GITHUBACCOUNT}/calmerge.config
+git push
 ```
 
-Repoint remote to your new repo:
+Copy the example calendar to the main configuration, update to include the ics files you wish to merge and then push back 
+Move ```calendars.example.yaml``` to ```calendars.yaml```, adjust to adding all required calendars and commit
 
 ```bash
-git remote set-url origin git@github.com:paulte/calmerge.config
-```
+cp calendars.example.yaml calendars.yaml
+<edit calendars.yaml>
+git add calendars.yaml
+pre-commit init
+make check
+git commit -m"initial configuration"
+git push
 
-Push the example config into your repo:
+Note, when doing the ```git commit```, pre-commit will validate the config file before allowing a remote push
+
+Once the changes have been pushed, a GitHub action will automatically trigger to download, merge and create a ```calendars/merged.ics``` file within your repo.  Navigate to your calmerge.config repository on GitHub, click on Actions and you should see a recently executed green workflow.
+
+Once your config repository is working, choose a mechanism to publicly present the calendar under an obfuscated name.
+
+A cloud flare example follows:
+- create a free cloud flare account and login
+- under works and pages, select Create application
+- Click on "Looking to deploy pages?   Get Started"
+- Import an existing Git repository
+- Authenticate and select your GitHub account and repository
+- select your calmerge.config repository
+- Enter the following under Build command, replacing with your own random GUID:
 ```bash
-git push -u origin main
-```
+mkdir -p public/ac1f7e02-b0df-4596-9ebb-259c8c775412 && cp calendars/merged.ics public/ac1f7e02-b0df-4596-9ebb-259c8c775412/events.ics
+- Once the build has complete, there will be a "You can preview your project at...  Click on this link and append the ```public/ac1f7e02-b0df-4596-9ebb-259c8c775412/events.ics``` path.  
+- your browser should download the merged ics file.
+- Copy this URL and subscribe in your calendar apps, for example ```https://calmerge-config.pages.dev/public/ac1f7e02-b0df-4596-9ebb-259c8c775412/events.ics`
 
-* Navigate to the example private repo: https://github.com/paulte/calmerge.exampleprivaterepo
-* Click on the fork icon
-* Give the repo a new local name within your account, such as ```calmergeprivate```
-* Click on create fork
-
-Create a virtual environment and install directly from GitHub
-
-```shell
-python3 -m venv venv
-. venv/bin/activate
-pip install --upgrade pip
-pip install git+https://github.com/paulte/calmerge.git
-```
+At this point, your configuration is complete.  As one last check, perform a dummy change such as changing the prefix for a calendar.
+- Check GitHub actions - you should notice a recently executed workflow running to green and notice an updated  ```calendars/merged.ics``` file in the repo
+- Check Cloudflare.  You should notice the git commit being absorbed and the merged.ics calendar being published
 
 For development:
 

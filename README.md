@@ -1,5 +1,7 @@
 # calmerge
 
+[![CI](https://github.com/paulte/calmerge/actions/workflows/test.yml/badge.svg)](https://github.com/paulte/calmerge/actions/workflows/test.yml)
+
 `calmerge` downloads multiple iCalendar (ICS) feeds, merges them into a single calendar, and writes the result as a new ICS file to be shared via a web server / CDN etc
 
 The project is structured as follows:

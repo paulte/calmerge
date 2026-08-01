@@ -1,5 +1,5 @@
 ---
-name: Test
+name: CI
 permissions:
   contents: read
 "on":
@@ -7,7 +7,7 @@ permissions:
   pull_request:
 jobs:
   test:
-    name: Run tests and checks
+    name: Validate project
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository

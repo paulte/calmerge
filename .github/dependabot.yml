@@ -10,6 +10,10 @@ updates:
       python-dependencies:
         patterns:
           - "*"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -19,6 +23,10 @@ updates:
       github-actions:
         patterns:
           - "*"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "ci"
 
   - package-ecosystem: "pre-commit"
     directory: "/"
@@ -28,3 +36,7 @@ updates:
       pre-commit-hooks:
         patterns:
           - "*"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "pre-commit"

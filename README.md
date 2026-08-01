@@ -42,6 +42,7 @@ pre-commit init
 make check
 git commit -m"initial configuration"
 git push
+```
 
 Note, when doing the ```git commit```, pre-commit will validate the config file before allowing a remote push
 

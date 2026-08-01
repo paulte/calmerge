@@ -19,6 +19,8 @@ jobs:
       - name: Create or update labels
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+
         run: |
           create_or_update() {
             local name="$1"

@@ -17,6 +17,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "pytest-cov",
     "ruff",
     "yamllint",
     "actionlint",
@@ -31,13 +32,23 @@ where = ["src"]
 
 
 [tool.pytest.ini_options]
+addopts = "--cov=src/calmerge --cov-report=term-missing"
 pythonpath = [
     "src"
 ]
-
 
 [tool.ruff]
 line-length = 88
 
 [tool.ruff.format]
 preview = true
+
+[tool.coverage.run]
+branch = true
+source = ["calmerge"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+]

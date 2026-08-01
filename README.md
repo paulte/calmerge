@@ -1,6 +1,7 @@
 # calmerge
 
 [![CI](https://github.com/paulte/calmerge/actions/workflows/test.yml/badge.svg)](https://github.com/paulte/calmerge/actions/workflows/test.yml)
+[![Coverage](https://img.shields.io/badge/coverage-84%25-brightgreen)](https://github.com/paulte/calmerge/actions/workflows/test.yml)
 ![Python](https://img.shields.io/badge/python-3.14-blue.svg)
 [![License](https://img.shields.io/github/license/paulte/calmerge)](LICENSE)
 
@@ -114,6 +115,21 @@ Run the full validation suite:
 
 ```bash
 make check
+```
+
+Run the local test suite from the project venv:
+
+```bash
+source venv/bin/activate
+python -m pytest -q
+```
+
+Measure coverage for the key modules:
+
+```bash
+source venv/bin/activate
+python -m coverage run -m pytest -q
+python -m coverage report -m src/calmerge/cli.py src/calmerge/config.py src/calmerge/cache.py
 ```
 
 Remove generated files:

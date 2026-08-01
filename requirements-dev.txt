@@ -4,3 +4,4 @@ pre_commit==4.6.1
 ruff==0.16.1
 codespell==2.4.3
 yamllint==1.38.0
+pytest-cov==7.1.0

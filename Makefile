@@ -1,4 +1,4 @@
-.PHONY: all format lint check clean test precommit distclean
+.PHONY: all format lint check clean test coverage precommit distclean
 
 all: format  check
 
@@ -19,7 +19,7 @@ check:
 	ruff check .
 	yamllint .
 	actionlint
-	pytest
+	$(MAKE) test
 
 distclean:
 	rm -rf .cache
@@ -40,4 +40,12 @@ clean:
 	rm -rf src/calmerge/__pycache__
 
 test:
-	pytest
+	python -m pytest \
+		--cov=src/calmerge \
+		--cov-report=term-missing \
+		--cov-report=xml:coverage.xml \
+		--cov-report=html:coverage-report \
+		--cov-fail-under=80 \
+		-q
+
+coverage: test

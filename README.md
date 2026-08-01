@@ -1,100 +1,111 @@
 # calmerge
 
-This repo contains the code for `calmerge`, a tool that downloads multiple ICS calendars and merges them into a single calendar.
+`calmerge` downloads multiple iCalendar (ICS) feeds, merges them into a single calendar, and writes the result as a new ICS file.
 
-The application code is designed to be public. Calendar configuration and generated state can be maintained separately in a private repository.
+The project is designed around a simple idea:
 
-## Environment setup
+- **This repository** contains the reusable application.
+- **Your repository** contains your private configuration, generated calendars and deployment automation.
 
-### Production
+This keeps calendar URLs and personal data out of the public codebase.
+
+---
+
+# Installation
+
+Create a virtual environment and install directly from GitHub:
+
+```shell
+python3 -m venv venv
+. venv/bin/activate
+pip install --upgrade pip
+pip install git+https://github.com/paulte/calmerge.git
+```
+
+For development:
 
 ```shell
 git clone https://github.com/paulte/calmerge.git
 cd calmerge
+
 python3 -m venv venv
 . venv/bin/activate
-python3 -m pip install --upgrade pip
-pip install .
-```
 
-### Development
-
-```shell
+pip install --upgrade pip
 pip install -r requirements-dev.txt
 pip install -e .
+
 pre-commit install
 ```
 
-Install development tools:
+Optional development tooling:
 
 ```shell
 brew install actionlint
 ```
 
-## Configuration
+---
 
-Calendar sources are configured in a YAML file. By default this is `calendars.yaml`, but an alternative file can be supplied using `--config`.
+# Configuration
 
-The public repository contains an example configuration:
+By default, `calmerge` reads its configuration from:
+
+```text
+calendars.yaml
+```
+
+You can specify a different file:
 
 ```shell
+calmerge --config my-calendars.yaml
+```
+
+An example configuration is included in:
+
+```text
 examples/calendars.example.yaml
 ```
 
-Private deployments should maintain their own configuration file separately.
-
-### Example
+## Example
 
 ```yaml
 ---
-calendar_name: My Combined Calendar
+calendar_name: Merged Family Calendar
 
 calendars:
-  - name: Work Calendar
-    url: https://example.com/work-calendar.ics
+  - name: Work
+    prefix: Work
+    url: https://example.com/work.ics
 
-  - name: Family Calendar
+  - name: Family
     prefix: Family
-    url: https://example.com/family-calendar.ics
+    url: https://example.com/family.ics
 
-  - name: Events Calendar
-    prefix: Events
-    url: https://example.com/events-calendar.ics
+  - name: Scouts
+    prefix: Scouts
+    url: https://example.com/scouts.ics
 ```
 
-The minimum configuration for each calendar source is:
+## Calendar options
 
-- `name` - the display name of the source calendar
-- `url` - the ICS calendar URL
+Each calendar requires:
 
-Optional settings can be used to customise processing, such as:
+| Option | Description |
+|---------|-------------|
+| `name` | Friendly name of the calendar |
+| `url` | ICS feed URL |
 
-- `prefix` - optional text added to event titles to identify the source calendar
+Optional settings include:
 
-The configuration file is intentionally kept separate from the codebase. This allows the calmerge package to be public while keeping personal calendar sources private.
+| Option | Description |
+|---------|-------------|
+| `prefix` | Prepended to event titles to identify their source |
 
-## Repository separation
+Additional filtering and processing options may also be configured as the project evolves.
 
-The application code and calendar instance data are intentionally separated.
+---
 
-The public repository contains:
-
-- application code
-- tests
-- CI workflows
-- example configuration
-- documentation
-
-A private configuration repository contains deployment-specific data:
-
-- `calendars.yaml`
-- calendar source URLs
-- generated calendar output
-- cached calendar state
-
-This allows the `calmerge` application to be reused without exposing private calendar sources or personal calendar data.
-
-## Usage
+# Running
 
 Generate the merged calendar:
 
@@ -102,9 +113,51 @@ Generate the merged calendar:
 calmerge
 ```
 
-The generated calendar will be written to `calendars/merged.ics`.
+Or specify a configuration file:
 
-## Development commands
+```shell
+calmerge --config calendars.yaml
+```
+
+The merged calendar is written to:
+
+```text
+calendars/merged.ics
+```
+
+Downloads are cached automatically to minimise unnecessary network traffic.
+
+---
+
+# Recommended repository layout
+
+A typical deployment keeps the public application separate from private data.
+
+## Public repository
+
+```
+calmerge/
+├── src/
+├── tests/
+├── examples/
+├── README.md
+└── ...
+```
+
+## Private repository
+
+```
+.
+├── calendars.yaml
+├── calendars/
+└── .github/workflows/
+```
+
+Your private repository contains everything specific to your calendars, while the application itself can simply be installed from GitHub.
+
+---
+
+# Development
 
 Format code:
 
@@ -112,7 +165,7 @@ Format code:
 make format
 ```
 
-Run Lint checks
+Run linting:
 
 ```shell
 make lint
@@ -124,63 +177,59 @@ Run the full validation suite:
 make check
 ```
 
-Clean generated files:
+Remove generated files:
 
 ```shell
 make distclean
 ```
 
-## Deployment and automation
+---
 
-The `calmerge` package is designed to separate calendar processing code from calendar configuration and generated output.
+# Automation
 
-The public repository contains the reusable `calmerge` code. A separate private repository can contain:
+`calmerge` is intended to run unattended from your private github repo
 
-- calendar source configuration
-- private calendar URLs
-- generated calendar output
-- deployment automation
+A typical GitHub Actions workflow:
 
-This allows the `calmerge` package to be shared without exposing personal calendar sources.
+1. Checks out your private repository.
+2. Installs `calmerge` from GitHub.
+3. Runs `calmerge`.
+4. Commits updated calendars if anything changed.
+5. Publishes the generated calendar.
 
-### GitHub Actions
+Because configuration, cache and output all live in your private repository, updating to new versions of `calmerge` is handled automatically within the github action within the private repo.
 
-A private configuration repository can use GitHub Actions to periodically run `calmerge`.
+---
 
-A typical workflow:
+# Deployment
 
-1. Checks out the private configuration repository.
-1. Installs the `calmerge` package from GitHub.
-1. Loads the private `calendars.yaml` configuration.
-1. Downloads and merges the configured ICS calendars.
-1. Commits the generated calendar output if it has changed.
+The generated `merged.ics` file can be published using any static hosting provider, including:
 
-The refresh frequency is controlled by the workflow schedule configuration.
+- GitHub Pages
+- Cloudflare Pages
+- Netlify
+- Any standard web server
 
-### Publishing
+The published ICS URL can then be subscribed to from calendar applications such as Apple Calendar, Google Calendar and Outlook.
 
-The generated calendar can then be published using a static hosting provider such as Cloudflare Pages or another web hosting service.
+---
 
-### Deployment flow
+# Project philosophy
 
-```text
-Source calendars
-        |
-        v
-GitHub Actions
-        |
-        v
-Calendar merge process
-        |
-        v
-calendars/merged.ics
-        |
-        v
-Git commit
-        |
-        v
-Cloudflare deployment
-        |
-        v
-Published calendar URL
-```
+`calmerge` deliberately separates **code** from **configuration**.
+
+This repository contains only the reusable application.
+
+Your private repository contains:
+
+- calendar URLs
+- configuration
+- merged generated calendar
+- deployment workflow
+
+This makes it easy to:
+
+- keep personal data private
+- upgrade to new releases
+- reuse the application across multiple deployments
+- contribute improvements back to the public project

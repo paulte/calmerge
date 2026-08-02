@@ -10,8 +10,9 @@
 The project is structured as follows:
 
 - **This repository** https://github.com/paulte/calmerge/ contains the reusable application. You will not need to reference or clone this repo
-- **Your repository** cloned from https://github.com/paulte/calmerge.exampleprivaterepo. Your repo contains your private configuration and will reference the above calmerge code via GitHub actions.
+- **Your repository** cloned from https://github.com/paulte/calmerge.exampleprivaterepo. Your repo contains your private configuration of the calendars to merge along with the final merged ics output file.
 
+Note, the private config repo will update and merge all calendars every 6 hours, updating the primary `calendars/merged.ics` file in github only if calendar events change.  It will not persist a new version if only the retrieval timestamps change.
 ______________________________________________________________________
 
 # Installation
@@ -32,12 +33,11 @@ git remote set-url origin git@github.com:${GITHUBACCOUNT}/calmerge.config
 git push
 ```
 
-Copy the example calendar to the main configuration, update to include the ics files you wish to merge and then push back
-Move `calendars.example.yaml` to `calendars.yaml`, adjust to adding all required calendars and commit
+Copy the example calendar to the main configuration, update to include the ics URLs you wish to merge and then push back to github:
 
 ```bash
 cp calendars.example.yaml calendars.yaml
-<edit calendars.yaml>
+# edit calendars.yaml to include the various calendars you wish to merge
 git add calendars.yaml
 pre-commit init
 make check
@@ -47,7 +47,7 @@ git push
 
 Note, when doing the `git commit`, pre-commit will validate the config file before allowing a remote push
 
-Once the changes have been pushed, a GitHub action will automatically trigger to download, merge and create a `calendars/merged.ics` file within your repo. Navigate to your calmerge.config repository on GitHub, click on Actions and you should see a recently executed green workflow.
+Once the changes have been pushed, a GitHub action will automatically trigger to download all calendars, merge and create a `calendars/merged.ics` file within your repo. Navigate to your calmerge.config repository on GitHub, click on Actions and you should see a recently executed green workflow.
 
 Once your config repository is working, choose a mechanism to publicly present the calendar under an obfuscated name.
 
@@ -66,19 +66,24 @@ A Cloudflare example follows:
 - Your browser should download the merged ics file.
 - Copy this URL and subscribe in your calendar apps, for example `https://calmerge-config.pages.dev/public/ac1f7e02-b0df-4596-9ebb-259c8c775412/events.ics`
 
-At this point, your configuration is complete. As one last check, perform a dummy change such as changing the prefix for a calendar.
+At this point, your configuration is complete. As one last check, perform a dummy change and commit such as changing the prefix for a calendar.
 
 - Check GitHub actions - you should notice a recently executed workflow running to green and notice an updated `calendars/merged.ics` file in the repo
 - Check Cloudflare. You should notice the git commit being absorbed and the merged.ics calendar being published
 
 ## Ongoing calendar change.
 
-Pushing a new config will generate a new `calendar/merged.ics`
-via github actions, as will any change detected in subscribed
-calendars. As such, it will be common for the github repo to be
-ahead of your local copy. As such, always start any change with a `git pull --rebase`
+Pushing a new config will generate a new `calendar/merged.ics` via github actions, as will any change detected in subscribed
+calendars. As such, it will be common for the github repo to be ahead of your local copy so the local editing workflow for your config repo is likely to be
 
-Once changes have been made, run a `make check` before committing files and pushing back to your repo
+```bash
+git pull --rebase
+# edit calendars.yaml
+git add calendars.yaml
+make check
+git commit -m"added another calendar for XX"
+git push
+```
 
 # Developing code for calmerge
 

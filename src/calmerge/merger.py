@@ -138,7 +138,7 @@ def create_output_calendar(
 
     calendar.add(
         "prodid",
-        "-//CalMerge//Scouting Calendar//",
+        "-//CalMerge//Combined Calendar//",
     )
     calendar.add(
         "version",

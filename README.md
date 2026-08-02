@@ -115,19 +115,27 @@ make format
 make lint
 make test
 make check
-make coverage
-make pre-commit
-make distclean
 ```
 
 Suggested workflow:
 
 1. Run `make format` to apply auto-formatting and safe lint fixes.
 1. Run `make lint` to validate style, YAML, and GitHub workflow syntax.
-1. Run `make test` to execute the coverage-gated pytest suite.
-1. Run `make check` before opening a pull request or committing changes.
+1. Run `make test` for the standard developer pytest run.
+1. Run `make check` before opening a pull request or committing changes. This performs formatting checks, lint checks, and then runs `make test`.
 
-The GitHub Actions workflow is wired to the same Makefile targets, so contributors should prefer `make` over direct manual `pytest` or `coverage` commands.
+Optional local utilities:
+
+```bash
+make coverage
+make pre-commit
+make clean
+make distclean
+```
+
+Use `make coverage` when you want the coverage report and fail-under threshold enforced. Use `make pre-commit`, `make clean`, and `make distclean` for repository hygiene and commit preparation.
+
+A `git commit` will automatically run `pre-commit` to validate *changed* code before allowing a remote push whereas `make pre-commit` runs the same checks against all files in the repository.text
 
 ______________________________________________________________________
 

@@ -14,6 +14,9 @@ lint:
 precommit:
 	pre-commit run --all-files
 
+pre-commit: precommit
+pc: precommit
+
 check:
 	ruff format --check .
 	ruff check .

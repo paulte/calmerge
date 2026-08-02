@@ -48,4 +48,4 @@ coverage:
 		--cov-report=term-missing \
 		--cov-report=xml:coverage.xml \
 		--cov-report=html:coverage-report \
-		--cov-fail-under=80
+		--cov-fail-under=85

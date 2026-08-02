@@ -19,7 +19,6 @@ dev = [
     "pytest-cov",
     "ruff",
     "yamllint",
-    "actionlint",
     "pip-audit",
 ]
 

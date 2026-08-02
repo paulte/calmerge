@@ -115,3 +115,15 @@ def validate_config(calendars: list[dict[str, Any]]) -> None:
 
         names.add(name)
         urls.add(url)
+
+
+def get_exclusion_rules(
+    config: dict[str, Any],
+) -> list[dict[str, Any]]:
+    return config.get(
+        "exclusions",
+        {},
+    ).get(
+        "rules",
+        [],
+    )

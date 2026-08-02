@@ -1,3 +1,7 @@
+# Repo specific.  The main repo shouldn't ever persist the live config or resulting default output
+calendars.yaml
+calendars/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -216,9 +220,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
-
-calendars/
-calendars.yaml
 
 # Vim swap files
 *.swp

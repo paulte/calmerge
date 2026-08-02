@@ -66,6 +66,9 @@ jobs:
           if cmp -s /tmp/old.ics /tmp/new.ics; then
             echo "No meaningful calendar changes"
             exit 0
+          else
+            echo "The following calendar changes have been detected"
+            diff /tmp/old.ics /tmp/new.ics
           fi
 
           git add calendars/merged.ics

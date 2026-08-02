@@ -12,7 +12,8 @@ The project is structured as follows:
 - **This repository** https://github.com/paulte/calmerge/ contains the reusable application. You will not need to reference or clone this repo
 - **Your repository** cloned from https://github.com/paulte/calmerge.exampleprivaterepo. Your repo contains your private configuration of the calendars to merge along with the final merged ics output file.
 
-Note, the private config repo will update and merge all calendars every 6 hours, updating the primary `calendars/merged.ics` file in github only if calendar events change.  It will not persist a new version if only the retrieval timestamps change.
+Note, the private config repo will update and merge all calendars every 6 hours, updating the primary `calendars/merged.ics` file in github only if calendar events change. It will not persist a new version if only the retrieval timestamps change.
+
 ______________________________________________________________________
 
 # Installation
@@ -143,48 +144,7 @@ You can specify a different file:
 calmerge --config my-calendars.yaml
 ```
 
-An example configuration is included in:
-
-```text
-examples/calendars.example.yaml
-```
-
-## Example
-
-```yaml
----
-calendar_name: Merged Family Calendar
-
-calendars:
-  - name: Work
-    prefix: Work
-    url: https://example.com/work.ics
-
-  - name: Family
-    prefix: Family
-    url: https://example.com/family.ics
-
-  - name: Scouts
-    prefix: Scouts
-    url: https://example.com/scouts.ics
-```
-
-## Calendar options
-
-Each calendar requires:
-
-| Option | Description |
-|---------|-------------|
-| `name` | Friendly name of the calendar |
-| `url` | ICS feed URL |
-
-Optional settings include:
-
-| Option | Description |
-|---------|-------------|
-| `prefix` | Prepended to event titles to identify their source |
-
-Additional filtering and processing options may also be configured as the project evolves.
+An example configuration is included within the example config repository: https://github.com/paulte/calmerge.exampleprivaterepo/blob/main/calendars.example.yaml
 
 ______________________________________________________________________
 

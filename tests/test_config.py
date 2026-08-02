@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from calmerge.config import load_config
+from calmerge.config import load_config, validate_config
 
 
 def write_config(tmp_path: Path, content: dict) -> Path:
@@ -255,3 +255,30 @@ def test_config_duplicate_url_fails(tmp_path: Path):
 
     with pytest.raises(ValueError, match="Duplicate calendar url"):
         load_config(config_file)
+
+
+def test_validate_config_accepts_valid_exclusions():
+    config = {
+        "calendars": [
+            {
+                "name": "Test Calendar",
+                "url": "https://example.com/calendar.ics",
+            },
+        ],
+        "exclusions": {
+            "rules": [
+                {
+                    "id": "ignore-cancelled",
+                    "event": {
+                        "summary": {
+                            "regex": "Cancelled",
+                        },
+                    },
+                },
+            ],
+        },
+    }
+
+    validate_config(
+        config,
+    )

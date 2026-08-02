@@ -40,12 +40,12 @@ clean:
 	rm -rf src/calmerge/__pycache__
 
 test:
+	python -m pytest
+
+coverage:
 	python -m pytest \
 		--cov=src/calmerge \
 		--cov-report=term-missing \
 		--cov-report=xml:coverage.xml \
 		--cov-report=html:coverage-report \
-		--cov-fail-under=80 \
-		-q
-
-coverage: test
+		--cov-fail-under=80

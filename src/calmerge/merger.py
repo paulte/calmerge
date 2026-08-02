@@ -8,7 +8,10 @@ from typing import TYPE_CHECKING, Any
 
 from icalendar import Calendar
 
+from calmerge.exclusions import should_exclude_event
+
 from .cache import CalendarCache
+from .config import AppPaths, get_exclusion_rules
 from .downloader import create_session, load_source_calendar
 
 if TYPE_CHECKING:
@@ -177,6 +180,8 @@ def merge_calendars(
     seen_events = set()
     failed_calendars = []
 
+    rules = get_exclusion_rules(config)
+
     cache = CalendarCache(paths.cache_dir)
 
     with create_session() as session:
@@ -199,6 +204,16 @@ def merge_calendars(
 
             for component in calendar.walk():
                 if component.name != VEVENT:
+                    continue
+                if should_exclude_event(
+                    component,
+                    source,
+                    rules,
+                ):
+                    logger.info(
+                        "Excluded event: %s",
+                        component.get(SUMMARY),
+                    )
                     continue
 
                 event = process_event(

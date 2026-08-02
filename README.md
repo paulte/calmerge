@@ -6,7 +6,7 @@
 ![Python](https://img.shields.io/badge/python-3.14-blue.svg)
 [![License](https://img.shields.io/github/license/paulte/calmerge)](LICENSE)
 
-`calmerge` downloads multiple iCalendar (ICS) feeds, merges them into a single calendar, and writes the result as a new ICS file to be shared via a web server / CDN etc
+`calmerge` downloads multiple iCalendar (ICS) feeds, optionally applies configurable exclusion rules, merges them into a single calendar, and writes the result as a new ICS file to be shared via a web server / CDN etc
 
 The project is structured as follows:
 
@@ -135,7 +135,7 @@ make distclean
 
 Use `make coverage` when you want the coverage report and fail-under threshold enforced. Use `make pre-commit`, `make clean`, and `make distclean` for repository hygiene and commit preparation.
 
-A `git commit` will automatically run `pre-commit` to validate *changed* code before allowing a remote push whereas `make pre-commit` runs the same checks against all files in the repository.text
+A `git commit` will automatically run `pre-commit` to validate *changed* code before allowing a remote push, whereas `make pre-commit` runs the same checks against all files in the repository.
 
 ______________________________________________________________________
 
@@ -154,6 +154,14 @@ calmerge --config my-calendars.yaml
 ```
 
 An example configuration is included within the example config repository: https://github.com/paulte/calmerge.exampleprivaterepo/blob/main/calendars.example.yaml
+
+## Exclusions
+
+Calendar events can optionally be excluded during the merge process using configurable rules.
+
+Exclusion rules support regular expression matching against calendar and event attributes. Multiple conditions within a rule are combined using AND logic, and multiple rules are combined using OR logic.
+
+The recommended approach is to maintain exclusions within your private configuration repository rather than this public application repository.
 
 ______________________________________________________________________
 

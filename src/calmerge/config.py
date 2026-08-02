@@ -1,4 +1,5 @@
 import argparse
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -66,12 +67,13 @@ def load_config(
     if not isinstance(calendars, list) or not calendars:
         raise ValueError("'calendars' must be a non-empty list")
 
-    validate_config(calendars)
+    validate_config(config)
 
     return config
 
 
-def validate_config(calendars: list[dict[str, Any]]) -> None:
+def validate_config(config: dict[str, Any]) -> None:
+    calendars = config["calendars"]
     required_fields = {"name", "url"}
 
     names = set()
@@ -115,3 +117,58 @@ def validate_config(calendars: list[dict[str, Any]]) -> None:
 
         names.add(name)
         urls.add(url)
+
+        validate_exclusions(
+            config.get(
+                "exclusions",
+                {},
+            ),
+        )
+
+
+def get_exclusion_rules(
+    config: dict[str, Any],
+) -> list[dict[str, Any]]:
+    return config.get(
+        "exclusions",
+        {},
+    ).get(
+        "rules",
+        [],
+    )
+
+
+def validate_exclusions(
+    exclusions: dict[str, Any],
+) -> None:
+    rules = exclusions.get(
+        "rules",
+        [],
+    )
+
+    for rule in rules:
+        if "id" not in rule:
+            raise ValueError(
+                "Exclusion rule missing id",
+            )
+
+        for section in ("calendar", "event"):
+            conditions = rule.get(
+                section,
+                {},
+            )
+
+            for field, matcher in conditions.items():
+                regex = matcher.get("regex")
+
+                if not regex:
+                    raise ValueError(
+                        f"Exclusion rule {rule['id']} {section}.{field} missing regex",
+                    )
+
+                try:
+                    re.compile(regex)
+                except re.error as exc:
+                    raise ValueError(
+                        f"Invalid regex in exclusion rule {rule['id']}: {regex}",
+                    ) from exc

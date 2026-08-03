@@ -1,26 +1,16 @@
 [build-system]
-requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
+requires = ["setuptools>=61"]
 
 [project]
-name = "calmerge"
-version = "1.0.0"
+dependencies = ["icalendar", "requests", "pyyaml"]
 description = "Merge ICS calendars into a single calendar"
+name = "calmerge"
 requires-python = ">=3.14"
-dependencies = [
-    "icalendar",
-    "requests",
-    "pyyaml",
-]
+version = "1.0.0"
 
 [project.optional-dependencies]
-dev = [
-    "pytest",
-    "pytest-cov",
-    "ruff",
-    "yamllint",
-    "pip-audit",
-]
+dev = ["pytest", "pytest-cov", "ruff", "yamllint", "pip-audit"]
 
 [project.scripts]
 calmerge = "calmerge.cli:main"
@@ -30,9 +20,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 addopts = "--cov=src/calmerge --cov-report=term-missing"
-pythonpath = [
-    "src"
-]
+pythonpath = ["src"]
 
 [tool.ruff]
 line-length = 88
@@ -45,7 +33,4 @@ branch = true
 source = ["calmerge"]
 
 [tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "if TYPE_CHECKING:",
-]
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]

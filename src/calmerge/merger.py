@@ -93,7 +93,6 @@ def get_event_start(event) -> datetime:
 def process_event(
     component,
     source: dict[str, Any],
-    seen_events: set[str],
 ):
     name = source["name"]
     prefix = source.get("prefix", "")
@@ -103,25 +102,10 @@ def process_event(
     ensure_uid(event, name)
     ensure_dtstamp(event)
 
-    uid = str(event[UID])
-    unique_key = f"{name}|{uid}"
-
-    if unique_key in seen_events:
-        logger.info(f"Skipping duplicate {unique_key}")
-        return None
-
-    seen_events.add(unique_key)
-
     event.add(
         "x-source-calendar",
         name,
     )
-
-    if prefix and SUMMARY in event:
-        current = str(event[SUMMARY])
-
-        if not current.startswith(prefix):
-            event[SUMMARY] = f"{prefix}: {current}"
 
     if "color" in source:
         event.add(
@@ -131,7 +115,11 @@ def process_event(
 
     logger.info(f"  {event.get(SUMMARY)}")
 
-    return event
+    return {
+        "event": event,
+        "prefix": prefix,
+        "source": name,
+    }
 
 
 def create_output_calendar(
@@ -176,8 +164,7 @@ def merge_calendars(
 ) -> Calendar:
     output = create_output_calendar(config)
 
-    events = []
-    seen_events = set()
+    merged_events = {}
     failed_calendars = []
 
     rules = get_exclusion_rules(config)
@@ -216,20 +203,55 @@ def merge_calendars(
                     )
                     continue
 
-                event = process_event(
+                result = process_event(
                     component,
                     source,
-                    seen_events,
                 )
 
-                if event:
-                    events.append(event)
+                if result:
+                    event = result["event"]
+                    uid = str(event[UID])
+
+                    if uid not in merged_events:
+                        merged_events[uid] = {
+                            "event": event,
+                            "prefixes": set(),
+                            "sources": set(),
+                        }
+                    else:
+                        existing = merged_events[uid]
+                        logger.info(
+                            "  Merging duplicate event '%s' from %s into %s",
+                            event.get(SUMMARY),
+                            result["source"],
+                            ", ".join(existing["sources"]),
+                        )
+
+                    if result["prefix"]:
+                        merged_events[uid]["prefixes"].add(result["prefix"])
+                    merged_events[uid]["sources"].add(result["source"])
 
     if failed_calendars:
         raise RuntimeError(
             f"{len(failed_calendars)} calendar(s) failed: "
             + ", ".join(failed_calendars)
         )
+
+    events = []
+
+    for item in merged_events.values():
+        event = item["event"]
+
+        prefixes = sorted(
+            item["prefixes"],
+            key=str.casefold,
+        )
+
+        if prefixes and SUMMARY in event:
+            current = str(event[SUMMARY])
+            event[SUMMARY] = f"{'/'.join(prefixes)}: {current}"
+
+        events.append(event)
 
     events.sort(key=get_event_start)
 

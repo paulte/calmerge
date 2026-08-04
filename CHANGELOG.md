@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0 2026-08-04
+
+- Enabled merging of calendars with the same UID, merging calendar prefixes in the summary
+
 ## 1.1.0 2026-08-02
 
 - Added configurable calendar event exclusions

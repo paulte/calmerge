@@ -221,7 +221,7 @@ def merge_calendars(
                     else:
                         existing = merged_events[uid]
                         logger.info(
-                            "  Merging duplicate event '%s' from %s into %s",
+                            "Merging duplicate event '%s' from %s into %s",
                             event.get(SUMMARY),
                             result["source"],
                             ", ".join(existing["sources"]),

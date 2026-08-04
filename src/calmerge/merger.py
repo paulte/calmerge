@@ -113,7 +113,7 @@ def process_event(
             source["color"],
         )
 
-    logger.info(f"  {event.get(SUMMARY)}")
+    logger.info(f"Processing:{event.get(SUMMARY)}")
 
     return {
         "event": event,
@@ -198,7 +198,7 @@ def merge_calendars(
                     rules,
                 ):
                     logger.info(
-                        "Excluded event: %s",
+                        "  Excluded event: %s",
                         component.get(SUMMARY),
                     )
                     continue

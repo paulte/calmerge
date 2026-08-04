@@ -164,25 +164,28 @@ def test_load_source_calendar_raises_when_304_response_has_no_cached_calendar(
         )
 
 
-def test_process_event_adds_uid_dtstamp_prefix_and_color_and_dedupes():
+def test_process_event_adds_uid_dtstamp_metadata_and_color():
     event = next(iter(Calendar.from_ical(ICAL).walk("VEVENT")))
-    seen_events = set()
+
     source = {
         "name": "Family",
         "prefix": "FAMILY",
         "color": "#ff00ff",
     }
 
-    processed = process_event(event, source, seen_events)
+    processed = process_event(event, source)
 
     assert processed is not None
-    assert "UID" in processed
-    assert "DTSTAMP" in processed
-    assert str(processed["SUMMARY"]) == "FAMILY: Test Event"
-    assert str(processed["X-SOURCE-CALENDAR"]) == "Family"
-    assert str(processed["X-APPLE-CALENDAR-COLOR"]) == "#ff00ff"
 
-    assert process_event(event, source, seen_events) is None
+    processed_event = processed["event"]
+
+    assert "UID" in processed_event
+    assert "DTSTAMP" in processed_event
+    assert str(processed_event["SUMMARY"]) == "Test Event"
+    assert processed["prefix"] == "FAMILY"
+    assert processed["source"] == "Family"
+    assert str(processed_event["X-SOURCE-CALENDAR"]) == "Family"
+    assert str(processed_event["X-APPLE-CALENDAR-COLOR"]) == "#ff00ff"
 
 
 def test_get_event_start_handles_date_and_missing_value():
@@ -211,16 +214,19 @@ def test_get_event_start_handles_date_and_missing_value():
 def test_process_event_generates_missing_uid_and_dtstamp():
     event = Event()
     event.add("summary", "Missing UID Event")
-    seen_events = set()
     source = {"name": "Family"}
 
-    processed = process_event(event, source, seen_events)
+    processed = process_event(event, source)
 
     assert processed is not None
-    assert "UID" in processed
-    assert "DTSTAMP" in processed
-    assert str(processed["SUMMARY"]) == "Missing UID Event"
-    assert str(processed["X-SOURCE-CALENDAR"]) == "Family"
+
+    processed_event = processed["event"]
+
+    assert "UID" in processed_event
+    assert "DTSTAMP" in processed_event
+    assert str(processed_event["SUMMARY"]) == "Missing UID Event"
+    assert str(processed_event["X-SOURCE-CALENDAR"]) == "Family"
+    assert processed["source"] == "Family"
 
 
 def test_merge_calendars_returns_sorted_output(monkeypatch, tmp_path):
@@ -299,3 +305,68 @@ def test_create_output_calendar_sets_expected_metadata():
 
     assert str(output["X-WR-CALNAME"]) == "Demo"
     assert str(output["X-WR-TIMEZONE"]) == "Europe/London"
+
+
+def test_merge_calendars_merges_duplicate_events_and_combines_prefixes(
+    monkeypatch,
+    tmp_path,
+):
+    first_calendar = b"""
+BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:sky-camp
+SUMMARY:Sky Camp
+DTSTART:20260925T180000Z
+END:VEVENT
+END:VCALENDAR
+"""
+
+    second_calendar = b"""
+BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:sky-camp
+SUMMARY:Sky Camp
+DTSTART:20260925T180000Z
+END:VEVENT
+END:VCALENDAR
+"""
+
+    def fake_load_source_calendar(session, source, cache):
+        if source["name"] == "Lucy":
+            return Calendar.from_ical(first_calendar)
+
+        return Calendar.from_ical(second_calendar)
+
+    monkeypatch.setattr(
+        "calmerge.merger.load_source_calendar",
+        fake_load_source_calendar,
+    )
+
+    config = {
+        "calendar_name": "Merged Calendar",
+        "calendars": [
+            {
+                "name": "Alice Calendar",
+                "prefix": "AliceHols",
+                "url": "https://example.com/lucy.ics",
+            },
+            {
+                "name": "Bob Calendar",
+                "prefix": "BobHols",
+                "url": "https://example.com/alice.ics",
+            },
+        ],
+    }
+
+    output = merge_calendars(
+        config,
+        type("Paths", (), {"cache_dir": tmp_path})(),
+    )
+
+    events = list(output.walk("VEVENT"))
+
+    assert len(events) == 1
+    assert str(events[0]["UID"]) == "sky-camp"
+    assert str(events[0]["SUMMARY"]) == ("AliceHols/BobHols: Sky Camp")

@@ -8,6 +8,12 @@
 
 `calmerge` downloads multiple iCalendar (ICS) feeds, optionally applies configurable exclusion rules, merges them into a single calendar, and writes the result as a new ICS file to be shared via a web server / CDN etc
 
+When multiple source calendars contain the same event (matching `UID`), `calmerge` combines them into a single calendar entry rather than outputting duplicates. Calendar prefixes from all matching sources are combined into the event summary, for example:
+
+PersonAlice/PersonBob: Shared event
+
+This allows the merged calendar to show that an event applies to multiple people or groups without relying on calendar applications to handle duplicate events.
+
 The project is structured as follows:
 
 - **This repository** https://github.com/paulte/calmerge/ contains the reusable application. You will not need to reference or clone this repo

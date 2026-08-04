@@ -350,12 +350,12 @@ END:VCALENDAR
             {
                 "name": "Alice Calendar",
                 "prefix": "AliceHols",
-                "url": "https://example.com/lucy.ics",
+                "url": "https://example.com/alice.ics",
             },
             {
                 "name": "Bob Calendar",
                 "prefix": "BobHols",
-                "url": "https://example.com/alice.ics",
+                "url": "https://example.com/bob.ics",
             },
         ],
     }

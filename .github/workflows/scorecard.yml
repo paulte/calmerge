@@ -27,7 +27,7 @@ jobs:
           
       - name: "Run Scorecard analysis"
         uses: ossf/scorecard-action@v2.4.3
-.       with:
+        with:
           results_file: results.sarif
           results_format: sarif
           publish_results: true

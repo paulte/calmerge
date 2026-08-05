@@ -370,3 +370,14 @@ END:VCALENDAR
     assert len(events) == 1
     assert str(events[0]["UID"]) == "sky-camp"
     assert str(events[0]["SUMMARY"]) == ("AliceHols/BobHols: Sky Camp")
+
+
+def test_get_event_start_with_malformed_dtstart_returns_max_date():
+    # Simulate a corrupt calendar event that fails during DTSTART decoding.
+    class BrokenEvent:
+        def decoded(self, key):
+            raise ValueError("invalid DTSTART")
+
+    result = get_event_start(BrokenEvent())
+
+    assert result == datetime.max.replace(tzinfo=UTC)

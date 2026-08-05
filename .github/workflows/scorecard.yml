@@ -24,10 +24,10 @@ jobs:
         uses: actions/checkout@v5
         with:
           persist-credentials: false
-
+          
       - name: "Run Scorecard analysis"
-        uses: ossf/scorecard-action@0864cf0a0b2d6c5c0f0c3e0f5e6d9f8b8f3f8b1c
-        with:
+        uses: ossf/scorecard-action@v2.4.3
+.       with:
           results_file: results.sarif
           results_format: sarif
           publish_results: true

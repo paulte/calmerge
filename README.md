@@ -3,6 +3,7 @@
 [![Lint](https://github.com/paulte/calmerge/actions/workflows/lint.yml/badge.svg)](https://github.com/paulte/calmerge/actions/workflows/lint.yml)
 [![CI](https://github.com/paulte/calmerge/actions/workflows/test.yml/badge.svg)](https://github.com/paulte/calmerge/actions/workflows/test.yml)
 [![Coverage](https://codecov.io/gh/paulte/calmerge/branch/main/graph/badge.svg)](https://codecov.io/gh/paulte/calmerge)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/paulte/calmerge/badge)](https://securityscorecards.dev/viewer/?uri=github.com/paulte/calmerge)
 ![Python](https://img.shields.io/badge/python-3.14-blue.svg)
 [![License](https://img.shields.io/github/license/paulte/calmerge)](LICENSE)
 

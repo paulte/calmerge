@@ -1,0 +1,26 @@
+---
+name: Anchore Syft SBOM scan
+
+"on":
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: write
+
+jobs:
+  Anchore-SBOM:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v7
+
+      - name: Scan the repository and upload dependency results
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610
+        with:
+          path: .
+          artifact-name: sbom.spdx.json
+          dependency-snapshot: true

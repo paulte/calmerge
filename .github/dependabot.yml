@@ -47,4 +47,5 @@ updates:
     commit-message:
       prefix: "pre-commit"
 
-# dependabot-trigger: 2026-08-10T12:51:39Z
+
+# dependabot-trigger: 2026-08-10T12:54:14Z

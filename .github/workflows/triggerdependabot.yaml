@@ -1,0 +1,33 @@
+---
+name: Trigger Dependabot after workflow changes
+"on":
+  push:
+    paths:
+      - ".github/workflows/**"
+permissions:
+  contents: write
+jobs:
+  trigger-dependabot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Update Dependabot trigger timestamp
+        run: |
+          timestamp="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+          grep -v '^# dependabot-trigger:' .github/dependabot.yml \
+            > .github/dependabot.yml.tmp
+          printf '\n# dependabot-trigger: %s\n' "$timestamp" \
+            >> .github/dependabot.yml.tmp
+          mv .github/dependabot.yml.tmp .github/dependabot.yml
+      - name: Commit Dependabot trigger
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/dependabot.yml
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "ci: trigger Dependabot after workflow change"
+          git push

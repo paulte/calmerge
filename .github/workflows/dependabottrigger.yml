@@ -17,7 +17,7 @@ jobs:
           timestamp="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
           grep -v '^# dependabot-trigger:' .github/dependabot.yml \
             > .github/dependabot.yml.tmp
-          printf '\n# dependabot-trigger: %s\n' "$timestamp" \
+          printf '# dependabot-trigger: %s\n' "$timestamp" \
             >> .github/dependabot.yml.tmp
           mv .github/dependabot.yml.tmp .github/dependabot.yml
       - name: Commit Dependabot trigger

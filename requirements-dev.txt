@@ -1,6 +1,6 @@
 -r requirements.txt
 pytest==9.1.1
-pre_commit==4.6.1
+pre_commit==4.6.2
 ruff==0.16.2
 codespell==2.4.3
 yamllint==1.38.0

@@ -4,6 +4,9 @@ name: Trigger Dependabot after workflow changes
   push:
     paths:
       - ".github/workflows/**"
+concurrency:
+  group: trigger-dependabot
+  cancel-in-progress: true
 permissions:
   contents: write
 jobs:

@@ -2,8 +2,12 @@
 name: Anchore Syft SBOM scan
 
 "on":
-  push:
-    branches: ["main"]
+  schedule:
+    - cron: "30 4 * * 1"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write

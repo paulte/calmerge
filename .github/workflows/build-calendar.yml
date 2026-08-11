@@ -4,18 +4,17 @@ name: Build Calendar
 "on":
   workflow_call:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
-
-concurrency:
-  group: calendar-build
-  cancel-in-progress: true
 
 jobs:
   build:
     name: Generate merged calendar
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout configuration
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

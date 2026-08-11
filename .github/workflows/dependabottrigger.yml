@@ -1,5 +1,6 @@
 ---
 name: Trigger Dependabot after workflow changes
+
 "on":
   push:
     paths:

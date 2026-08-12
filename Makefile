@@ -1,4 +1,4 @@
-.PHONY: all format lint check clean test coverage precommit distclean
+.PHONY: all format lint check clean test coverage precommit distclean requirements requirements-upgrade
 
 all: format  check
 
@@ -52,3 +52,33 @@ coverage:
 		--cov-report=xml:coverage.xml \
 		--cov-report=html:coverage-report \
 		--cov-fail-under=85
+
+
+
+requirements:
+	pip-compile \
+		--generate-hashes \
+		--allow-unsafe \
+		--output-file requirements.txt \
+		pyproject.toml
+	pip-compile \
+		--extra dev \
+		--generate-hashes \
+		--allow-unsafe \
+		--output-file requirements-dev.txt \
+		pyproject.toml
+
+requirements-upgrade:
+	pip-compile \
+		--upgrade \
+		--generate-hashes \
+		--allow-unsafe \
+		--output-file requirements.txt \
+		pyproject.toml
+	pip-compile \
+		--upgrade \
+		--extra dev \
+		--generate-hashes \
+		--allow-unsafe \
+		--output-file requirements-dev.txt \
+		pyproject.toml

@@ -10,7 +10,7 @@ requires-python = ">=3.14"
 version = "1.0.0"
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-cov", "ruff", "yamllint", "pip-audit"]
+dev = ["pytest", "pytest-cov", "ruff", "yamllint", "pip-audit", "pre-commit"]
 
 [project.scripts]
 calmerge = "calmerge.cli:main"

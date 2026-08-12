@@ -43,10 +43,10 @@ jobs:
         with:
           python-version: "3.14"
 
-      - name: Install calmerge
+      - name: Install project dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install git+https://github.com/paulte/calmerge.git
+          python -m pip install --require-hashes -r requirements.txt
+          python -m pip install --no-deps -e .
 
       - name: Generate merged calendar
         if: steps.config.outputs.configured == 'true'

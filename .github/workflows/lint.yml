@@ -28,17 +28,14 @@ jobs:
         with:
           python-version: "3.14"
 
-      - name: Install Ruff
-        run: pip install ruff
+      - name: Install development dependencies
+        run: python -m pip install --require-hashes -r requirements-dev.txt
 
       - name: Check Python formatting
         run: ruff format --check .
 
       - name: Run Ruff lint
         run: ruff check .
-
-      - name: Install yamllint
-        run: pip install yamllint
 
       - name: Lint YAML
         run: yamllint .

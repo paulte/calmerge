@@ -1,6 +1,82 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
   "extends": [
-    "config:recommended"
+    "config:recommended",
+    "helpers:pinGitHubActionDigests"
+  ],
+
+  "enabledManagers": [
+    "github-actions",
+    "npm",
+    "pip_requirements",
+    "pip_setup",
+    "pep621",
+    "pre-commit"
+  ],
+
+  "pinDigests": true,
+
+  "rangeStrategy": "pin",
+
+  "separateMajorMinor": true,
+  "separateMinorPatch": false,
+
+  "dependencyDashboard": true,
+
+  "labels": [
+    "dependencies"
+  ],
+
+  "packageRules": [
+    {
+      "description": "Pin GitHub Actions to immutable commit SHAs",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "pinDigests": true
+    },
+    {
+      "description": "Keep GitHub Actions version comments",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "pinDigests": true,
+      "digest": {
+        "enabled": true
+      }
+    },
+    {
+      "description": "Automerge patch updates after CI passes",
+      "matchUpdateTypes": [
+        "patch"
+      ],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Group non-major dependency updates",
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "groupName": "all non-major dependencies"
+    },
+    {
+      "description": "Python dependencies",
+      "matchManagers": [
+        "pip_requirements",
+        "pip_setup",
+        "pep621"
+      ],
+      "rangeStrategy": "pin"
+    },
+    {
+      "description": "JavaScript dependencies",
+      "matchManagers": [
+        "npm"
+      ],
+      "rangeStrategy": "pin"
+    }
   ]
 }

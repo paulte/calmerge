@@ -1,12 +1,12 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools>=61"]
+requires = ["setuptools==84.0.0"]
 
 [project]
 dependencies = ["icalendar", "requests", "pyyaml"]
 description = "Merge ICS calendars into a single calendar"
 name = "calmerge"
-requires-python = ">=3.14"
+requires-python = "==3.14.7"
 version = "1.0.0"
 
 [project.optional-dependencies]

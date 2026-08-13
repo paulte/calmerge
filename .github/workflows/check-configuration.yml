@@ -58,7 +58,7 @@ jobs:
 
       - name: Check YAML
         run: |
-          yamllint calendars.yaml
+          yamllint
 
       - name: Install actionlint
         run: |

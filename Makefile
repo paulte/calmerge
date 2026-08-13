@@ -1,40 +1,95 @@
+.PHONY: all format lint check clean test coverage precommit distclean requirements requirements-upgrade
+
+all: format  check
+
+format:
+	ruff format .
+	ruff check . --fix
+
+lint:
+	ruff check .
+	yamllint .
+	actionlint
+
+precommit:
+	pre-commit run --all-files
+
+pre-commit: precommit
+pc: precommit
+
+check:
+	ruff format --check .
+	ruff check .
+	yamllint .
+	actionlint
+	$(MAKE) test
+
+distclean:
+	rm -rf .cache
+	rm -rf calendars/
+	rm -rf venv/
+	rm -rf tests/__pycache__
+	rm -rf __pycache__
+	rm -rf src/calmerge/__pycache__
+	rm -rf src/*.egg-info
+	rm -rf .pytest_cache
+	rm -rf build
+	rm -rf dist
+
+clean:
+	rm -rf .cache
+	rm -rf tests/__pycache__
+	rm -rf __pycache__
+	rm -rf src/calmerge/__pycache__
+
+test:
+	python -m pytest
+
+coverage:
+	python -m pytest \
+		--cov=src/calmerge \
+		--cov-report=term-missing \
+		--cov-report=xml:coverage.xml \
+		--cov-report=html:coverage-report \
+		--cov-fail-under=85
+
 requirements:
-	pip-compile \
-		--generate-hashes \
-		--allow-unsafe \
-		--output-file requirements.txt \
-		pyproject.toml
-	pip-compile \
-		--extra dev \
-		--generate-hashes \
-		--allow-unsafe \
-		--output-file requirements-dev.txt \
-		pyproject.toml
-	pip-compile \
-		--extra ci \
-		--generate-hashes \
-		--allow-unsafe \
-		--output-file .github/requirements-ci.txt \
-		pyproject.toml
+		pip-compile \
+			--generate-hashes \
+			--allow-unsafe \
+			--output-file requirements.txt \
+			pyproject.toml
+		pip-compile \
+			--extra dev \
+			--generate-hashes \
+			--allow-unsafe \
+			--output-file requirements-dev.txt \
+			pyproject.toml
+		pip-compile \
+			--extra ci \
+			--generate-hashes \
+			--allow-unsafe \
+			--output-file .github/requirements-ci.txt \
+			pyproject.toml
 
 requirements-upgrade:
-	pip-compile \
-		--upgrade \
-		--generate-hashes \
-		--allow-unsafe \
-		--output-file requirements.txt \
-		pyproject.toml
-	pip-compile \
-		--upgrade \
-		--extra dev \
-		--generate-hashes \
-		--allow-unsafe \
-		--output-file requirements-dev.txt \
-		pyproject.toml
-	pip-compile \
-		--upgrade \
-		--extra ci \
-		--generate-hashes \
-		--allow-unsafe \
-		--output-file .github/requirements-ci.txt \
-		pyproject.toml
+		pip-compile \
+			--upgrade \
+			--generate-hashes \
+			--allow-unsafe \
+			--output-file requirements.txt \
+			pyproject.toml
+		pip-compile \
+			--upgrade \
+			--extra dev \
+			--generate-hashes \
+			--allow-unsafe \
+			--output-file requirements-dev.txt \
+			pyproject.toml
+		pip-compile \
+			--upgrade \
+			--extra ci \
+			--generate-hashes \
+			--allow-unsafe \
+			--output-file .github/requirements-ci.txt \
+			pyproject.toml

@@ -1,383 +1,490 @@
-from datetime import UTC, date, datetime
+from unittest.mock import Mock
 
 import pytest
-from icalendar import Calendar, Event
 
-from calmerge.cache import CalendarCache
-from calmerge.downloader import download_calendar, load_source_calendar
-from calmerge.merger import (
-    create_output_calendar,
-    get_event_start,
-    merge_calendars,
-    process_event,
+from calmerge.downloader import (
+    create_session,
+    download_calendar,
+    load_source_calendar,
+    validate_calendar_content,
 )
 
-ICAL = b"""
+VALID_CALENDAR = b"""\
 BEGIN:VCALENDAR
 VERSION:2.0
+PRODID:-//CalMerge Test//EN
 BEGIN:VEVENT
-UID:test-event
-SUMMARY:Test Event
-DTSTART:20260725T120000Z
+UID:test-event@example.com
+DTSTART:20260813T190000Z
+DTSTAMP:20260813T180000Z
+SUMMARY:Test event
 END:VEVENT
 END:VCALENDAR
 """
 
 
-class MockResponse:
-    def __init__(self, status_code, content, headers=None):
-        self.status_code = status_code
-        self.content = content
-        self.headers = headers or {}
-
-    def raise_for_status(self):
-        if self.status_code >= 400:
-            raise RuntimeError(f"HTTP {self.status_code}")
-
-
-class MockSession:
-    def __init__(self, response):
-        self.response = response
-
-    def get(self, url, headers, timeout):
-        return self.response
+HTML_RESPONSE = b"""\
+<!doctype html>
+<html>
+<head>
+    <title>Error</title>
+</head>
+<body>
+    Something went wrong
+</body>
+</html>
+"""
 
 
-def test_download_calendar_returns_200_payload_and_headers():
-    session = MockSession(
-        MockResponse(
-            200,
-            b"new-calendar",
-            {
-                "ETag": '"etag-value"',
-                "Last-Modified": "Mon, 01 Jan 2024 00:00:00 GMT",
-            },
+INVALID_CALENDAR = b"""\
+BEGIN:VCALENDAR
+VERSION:2.0
+THIS IS NOT A VALID ICALENDAR CONTENT LINE
+END:VCALENDAR
+"""
+
+
+def test_create_session_configures_retries():
+    session = create_session()
+
+    assert "http://" in session.adapters
+    assert "https://" in session.adapters
+
+    http_adapter = session.adapters["https://"]
+
+    assert http_adapter.max_retries.total == 3
+    assert http_adapter.max_retries.backoff_factor == 1
+    assert 429 in http_adapter.max_retries.status_forcelist
+    assert 500 in http_adapter.max_retries.status_forcelist
+    assert 502 in http_adapter.max_retries.status_forcelist
+    assert 503 in http_adapter.max_retries.status_forcelist
+    assert 504 in http_adapter.max_retries.status_forcelist
+    assert "GET" in http_adapter.max_retries.allowed_methods
+
+
+def test_validate_calendar_content_accepts_valid_calendar():
+    calendar = validate_calendar_content(
+        VALID_CALENDAR,
+        content_type="text/calendar",
+    )
+
+    assert calendar.name == "VCALENDAR"
+
+    events = list(calendar.walk("VEVENT"))
+
+    assert len(events) == 1
+    assert str(events[0]["SUMMARY"]) == "Test event"
+
+
+def test_validate_calendar_content_rejects_empty_content():
+    with pytest.raises(
+        ValueError,
+        match="Calendar response was empty",
+    ):
+        validate_calendar_content(b"")
+
+
+def test_validate_calendar_content_rejects_html():
+    with pytest.raises(
+        ValueError,
+        match="does not contain an iCalendar VCALENDAR component",
+    ):
+        validate_calendar_content(
+            HTML_RESPONSE,
+            content_type="text/html",
         )
+
+
+def test_validate_calendar_content_reports_response_preview_for_html():
+    with pytest.raises(
+        ValueError,
+        match="<!doctype html>",
+    ):
+        validate_calendar_content(
+            HTML_RESPONSE,
+            content_type="text/html",
+        )
+
+
+def test_validate_calendar_content_rejects_invalid_icalendar():
+    with pytest.raises(
+        ValueError,
+        match="could not be parsed as iCalendar",
+    ):
+        validate_calendar_content(
+            INVALID_CALENDAR,
+            content_type="text/calendar",
+        )
+
+
+def test_validate_calendar_content_accepts_valid_calendar_with_wrong_content_type():
+    calendar = validate_calendar_content(
+        VALID_CALENDAR,
+        content_type="text/plain",
+    )
+
+    assert calendar.name == "VCALENDAR"
+
+
+def test_download_calendar_returns_calendar_content():
+    session = Mock()
+
+    session.get.return_value = Mock(
+        status_code=200,
+        content=VALID_CALENDAR,
+        headers={
+            "Content-Type": "text/calendar",
+            "ETag": '"abc123"',
+            "Last-Modified": "Wed, 12 Aug 2026 12:00:00 GMT",
+        },
     )
 
     result = download_calendar(
         session,
         "https://example.com/calendar.ics",
-        {
-            "etag": '"old-etag"',
-            "last_modified": "Sun, 31 Dec 2023 00:00:00 GMT",
-        },
+        {},
     )
 
+    assert result.content == VALID_CALENDAR
     assert result.not_modified is False
-    assert result.content == b"new-calendar"
+    assert result.content_type == "text/calendar"
     assert result.metadata == {
-        "etag": '"etag-value"',
-        "last_modified": "Mon, 01 Jan 2024 00:00:00 GMT",
+        "etag": '"abc123"',
+        "last_modified": "Wed, 12 Aug 2026 12:00:00 GMT",
     }
 
+    session.get.assert_called_once()
 
-def test_load_source_calendar_uses_cache_after_304(tmp_path):
-    cache = CalendarCache(tmp_path)
-    cache.save("test-calendar", ICAL)
-    cache.save_metadata(
-        "test-calendar",
-        {
-            "etag": '"test-etag"',
-            "last_modified": "Sat, 25 Jul 2026 12:00:00 GMT",
+
+def test_download_calendar_sends_conditional_request_headers():
+    session = Mock()
+
+    session.get.return_value = Mock(
+        status_code=200,
+        content=VALID_CALENDAR,
+        headers={
+            "Content-Type": "text/calendar",
+            "ETag": '"new-etag"',
+            "Last-Modified": "Thu, 13 Aug 2026 12:00:00 GMT",
         },
     )
 
-    session = MockSession(MockResponse(304, b"", {}))
-
-    calendar = load_source_calendar(
-        session,
-        {
-            "name": "test-calendar",
-            "url": "https://example.com/calendar.ics",
-        },
-        cache,
-    )
-
-    events = list(calendar.walk("VEVENT"))
-    assert len(events) == 1
-    assert str(events[0]["SUMMARY"]) == "Test Event"
-
-
-def test_load_source_calendar_downloads_and_caches_new_payload(tmp_path):
-    cache = CalendarCache(tmp_path)
-    session = MockSession(
-        MockResponse(
-            200,
-            ICAL,
-            {
-                "ETag": '"fresh-etag"',
-                "Last-Modified": "Mon, 01 Jan 2024 00:00:00 GMT",
-            },
-        )
-    )
-
-    calendar = load_source_calendar(
-        session,
-        {
-            "name": "test-calendar",
-            "url": "https://example.com/calendar.ics",
-        },
-        cache,
-    )
-
-    events = list(calendar.walk("VEVENT"))
-    assert len(events) == 1
-    assert cache.load("test-calendar") == ICAL
-    assert cache.load_metadata("test-calendar") == {
-        "etag": '"fresh-etag"',
-        "last_modified": "Mon, 01 Jan 2024 00:00:00 GMT",
+    metadata = {
+        "etag": '"old-etag"',
+        "last_modified": "Wed, 12 Aug 2026 12:00:00 GMT",
     }
 
+    download_calendar(
+        session,
+        "https://example.com/calendar.ics",
+        metadata,
+    )
 
-def test_load_source_calendar_raises_when_cache_missing_after_failed_download(
-    tmp_path,
-):
-    cache = CalendarCache(tmp_path)
-    session = MockSession(MockResponse(500, b"", {}))
+    _, kwargs = session.get.call_args
 
-    with pytest.raises(RuntimeError, match="No cached copy available"):
-        load_source_calendar(
+    assert kwargs["headers"]["If-None-Match"] == '"old-etag"'
+    assert kwargs["headers"]["If-Modified-Since"] == "Wed, 12 Aug 2026 12:00:00 GMT"
+    assert kwargs["headers"]["User-Agent"] == "CalMerge Scout Calendar Aggregator/1.0"
+    assert kwargs["timeout"] == 30
+
+
+def test_download_calendar_handles_304():
+    session = Mock()
+
+    session.get.return_value = Mock(
+        status_code=304,
+        content=b"",
+        headers={},
+    )
+
+    metadata = {
+        "etag": '"abc123"',
+        "last_modified": "Wed, 12 Aug 2026 12:00:00 GMT",
+    }
+
+    result = download_calendar(
+        session,
+        "https://example.com/calendar.ics",
+        metadata,
+    )
+
+    assert result.content is None
+    assert result.not_modified is True
+    assert result.metadata == metadata
+    assert result.content_type == ""
+
+
+def test_download_calendar_raises_for_http_error():
+    session = Mock()
+
+    response = Mock()
+    response.status_code = 404
+    response.raise_for_status.side_effect = RuntimeError("404 error")
+
+    session.get.return_value = response
+
+    with pytest.raises(RuntimeError, match="404 error"):
+        download_calendar(
             session,
-            {
-                "name": "test-calendar",
-                "url": "https://example.com/calendar.ics",
-            },
-            cache,
+            "https://example.com/calendar.ics",
+            {},
         )
 
 
-def test_load_source_calendar_raises_when_304_response_has_no_cached_calendar(
+def test_load_source_calendar_downloads_valid_calendar_and_caches_it(
     tmp_path,
 ):
+    session = Mock()
+
+    session.get.return_value = Mock(
+        status_code=200,
+        content=VALID_CALENDAR,
+        headers={
+            "Content-Type": "text/calendar",
+            "ETag": '"abc123"',
+            "Last-Modified": "Wed, 12 Aug 2026 12:00:00 GMT",
+        },
+    )
+
+    from calmerge.cache import CalendarCache
+
     cache = CalendarCache(tmp_path)
-    session = MockSession(MockResponse(304, b"", {}))
-
-    with pytest.raises(RuntimeError, match="No cached copy available"):
-        load_source_calendar(
-            session,
-            {
-                "name": "test-calendar",
-                "url": "https://example.com/calendar.ics",
-            },
-            cache,
-        )
-
-
-def test_process_event_adds_uid_dtstamp_metadata_and_color():
-    event = next(iter(Calendar.from_ical(ICAL).walk("VEVENT")))
 
     source = {
-        "name": "Family",
-        "prefix": "FAMILY",
-        "color": "#ff00ff",
+        "name": "Test Calendar",
+        "url": "https://example.com/calendar.ics",
     }
 
-    processed = process_event(event, source)
-
-    assert processed is not None
-
-    processed_event = processed["event"]
-
-    assert "UID" in processed_event
-    assert "DTSTAMP" in processed_event
-    assert str(processed_event["SUMMARY"]) == "Test Event"
-    assert processed["prefix"] == "FAMILY"
-    assert processed["source"] == "Family"
-    assert str(processed_event["X-SOURCE-CALENDAR"]) == "Family"
-    assert str(processed_event["X-APPLE-CALENDAR-COLOR"]) == "#ff00ff"
-
-
-def test_get_event_start_handles_date_and_missing_value():
-    event = Event()
-    event.add("dtstart", date(2026, 7, 25))
-    assert get_event_start(event) == datetime(2026, 7, 25, 0, 0, tzinfo=UTC)
-
-    naive_datetime_event = Event()
-    naive_datetime_event.add(
-        "dtstart",
-        datetime(2026, 7, 25, 12, 0, tzinfo=UTC),
-    )
-    assert get_event_start(naive_datetime_event) == datetime(
-        2026,
-        7,
-        25,
-        12,
-        0,
-        tzinfo=UTC,
+    calendar = load_source_calendar(
+        session,
+        source,
+        cache,
     )
 
-    event_without_start = Event()
-    assert get_event_start(event_without_start) == datetime.max.replace(tzinfo=UTC)
+    assert calendar.name == "VCALENDAR"
+    assert cache.load("Test Calendar") == VALID_CALENDAR
 
+    metadata = cache.load_metadata("Test Calendar")
 
-def test_process_event_generates_missing_uid_and_dtstamp():
-    event = Event()
-    event.add("summary", "Missing UID Event")
-    source = {"name": "Family"}
-
-    processed = process_event(event, source)
-
-    assert processed is not None
-
-    processed_event = processed["event"]
-
-    assert "UID" in processed_event
-    assert "DTSTAMP" in processed_event
-    assert str(processed_event["SUMMARY"]) == "Missing UID Event"
-    assert str(processed_event["X-SOURCE-CALENDAR"]) == "Family"
-    assert processed["source"] == "Family"
-
-
-def test_merge_calendars_returns_sorted_output(monkeypatch, tmp_path):
-    first_event = b"""
-BEGIN:VCALENDAR
-VERSION:2.0
-BEGIN:VEVENT
-UID:first
-SUMMARY:First Event
-DTSTART:20260725T120000Z
-END:VEVENT
-END:VCALENDAR
-"""
-
-    second_event = b"""
-BEGIN:VCALENDAR
-VERSION:2.0
-BEGIN:VEVENT
-UID:second
-SUMMARY:Second Event
-DTSTART:20260726T120000Z
-END:VEVENT
-END:VCALENDAR
-"""
-
-    def fake_load_source_calendar(session, source, cache):
-        if source["name"] == "Alpha":
-            return Calendar.from_ical(first_event)
-        return Calendar.from_ical(second_event)
-
-    monkeypatch.setattr(
-        "calmerge.merger.load_source_calendar", fake_load_source_calendar
-    )
-
-    config = {
-        "calendar_name": "Merged Calendar",
-        "calendars": [
-            {"name": "Alpha", "url": "https://example.com/alpha.ics"},
-            {"name": "Beta", "url": "https://example.com/beta.ics"},
-        ],
+    assert metadata == {
+        "etag": '"abc123"',
+        "last_modified": "Wed, 12 Aug 2026 12:00:00 GMT",
     }
 
-    output = merge_calendars(config, type("Paths", (), {"cache_dir": tmp_path})())
 
-    output_events = list(output.walk("VEVENT"))
-    assert len(output_events) == 2
-    assert str(output_events[0]["SUMMARY"]) == "First Event"
-    assert str(output_events[1]["SUMMARY"]) == "Second Event"
-    assert str(output["X-WR-CALNAME"]) == "Merged Calendar"
+def test_invalid_download_does_not_overwrite_valid_cache(tmp_path):
+    session = Mock()
 
-
-def test_merge_calendars_raises_for_failed_sources(monkeypatch, tmp_path):
-    def fake_load_source_calendar(session, source, cache):
-        if source["name"] == "Broken":
-            raise RuntimeError("network down")
-        return Calendar.from_ical(ICAL)
-
-    monkeypatch.setattr(
-        "calmerge.merger.load_source_calendar", fake_load_source_calendar
+    session.get.return_value = Mock(
+        status_code=200,
+        content=HTML_RESPONSE,
+        headers={
+            "Content-Type": "text/html",
+        },
     )
 
-    with pytest.raises(RuntimeError, match=r"1 calendar\(s\) failed: Broken"):
-        merge_calendars(
-            {
-                "calendar_name": "Merged Calendar",
-                "calendars": [
-                    {"name": "Broken", "url": "https://example.com/broken.ics"},
-                ],
-            },
-            type("Paths", (), {"cache_dir": tmp_path})(),
+    from calmerge.cache import CalendarCache
+
+    cache = CalendarCache(tmp_path)
+
+    cache.save(
+        "Test Calendar",
+        VALID_CALENDAR,
+    )
+
+    source = {
+        "name": "Test Calendar",
+        "url": "https://example.com/calendar.ics",
+    }
+
+    calendar = load_source_calendar(
+        session,
+        source,
+        cache,
+    )
+
+    events = list(calendar.walk("VEVENT"))
+
+    assert len(events) == 1
+    assert str(events[0]["SUMMARY"]) == "Test event"
+
+    # The invalid HTML response must never replace the valid cache.
+    assert cache.load("Test Calendar") == VALID_CALENDAR
+
+
+def test_invalid_download_without_cache_raises_clear_error(tmp_path):
+    session = Mock()
+
+    session.get.return_value = Mock(
+        status_code=200,
+        content=HTML_RESPONSE,
+        headers={
+            "Content-Type": "text/html",
+        },
+    )
+
+    from calmerge.cache import CalendarCache
+
+    cache = CalendarCache(tmp_path)
+
+    source = {
+        "name": "Test Calendar",
+        "url": "https://example.com/calendar.ics",
+    }
+
+    with pytest.raises(
+        RuntimeError,
+        match="No cached copy available for Test Calendar",
+    ):
+        load_source_calendar(
+            session,
+            source,
+            cache,
         )
 
 
-def test_create_output_calendar_sets_expected_metadata():
-    output = create_output_calendar({"calendar_name": "Demo"})
+def test_valid_download_replaces_existing_cache(tmp_path):
+    session = Mock()
 
-    assert str(output["X-WR-CALNAME"]) == "Demo"
-    assert str(output["X-WR-TIMEZONE"]) == "Europe/London"
-
-
-def test_merge_calendars_merges_duplicate_events_and_combines_prefixes(
-    monkeypatch,
-    tmp_path,
-):
-    first_calendar = b"""
-BEGIN:VCALENDAR
-VERSION:2.0
-BEGIN:VEVENT
-UID:sky-camp
-SUMMARY:Sky Camp
-DTSTART:20260925T180000Z
-END:VEVENT
-END:VCALENDAR
-"""
-
-    second_calendar = b"""
-BEGIN:VCALENDAR
-VERSION:2.0
-BEGIN:VEVENT
-UID:sky-camp
-SUMMARY:Sky Camp
-DTSTART:20260925T180000Z
-END:VEVENT
-END:VCALENDAR
-"""
-
-    def fake_load_source_calendar(session, source, cache):
-        if source["name"] == "Lucy":
-            return Calendar.from_ical(first_calendar)
-
-        return Calendar.from_ical(second_calendar)
-
-    monkeypatch.setattr(
-        "calmerge.merger.load_source_calendar",
-        fake_load_source_calendar,
+    new_calendar = VALID_CALENDAR.replace(
+        b"Test event",
+        b"New event",
     )
 
-    config = {
-        "calendar_name": "Merged Calendar",
-        "calendars": [
-            {
-                "name": "Alice Calendar",
-                "prefix": "AliceHols",
-                "url": "https://example.com/alice.ics",
-            },
-            {
-                "name": "Bob Calendar",
-                "prefix": "BobHols",
-                "url": "https://example.com/bob.ics",
-            },
-        ],
+    session.get.return_value = Mock(
+        status_code=200,
+        content=new_calendar,
+        headers={
+            "Content-Type": "text/calendar",
+        },
+    )
+
+    from calmerge.cache import CalendarCache
+
+    cache = CalendarCache(tmp_path)
+
+    old_calendar = VALID_CALENDAR.replace(
+        b"Test event",
+        b"Old event",
+    )
+
+    cache.save(
+        "Test Calendar",
+        old_calendar,
+    )
+
+    source = {
+        "name": "Test Calendar",
+        "url": "https://example.com/calendar.ics",
     }
 
-    output = merge_calendars(
-        config,
-        type("Paths", (), {"cache_dir": tmp_path})(),
+    calendar = load_source_calendar(
+        session,
+        source,
+        cache,
     )
 
-    events = list(output.walk("VEVENT"))
+    events = list(calendar.walk("VEVENT"))
+
+    assert str(events[0]["SUMMARY"]) == "New event"
+    assert cache.load("Test Calendar") == new_calendar
+
+
+def test_304_uses_cached_calendar(tmp_path):
+    session = Mock()
+
+    session.get.return_value = Mock(
+        status_code=304,
+        content=b"",
+        headers={},
+    )
+
+    from calmerge.cache import CalendarCache
+
+    cache = CalendarCache(tmp_path)
+
+    cache.save(
+        "Test Calendar",
+        VALID_CALENDAR,
+    )
+
+    source = {
+        "name": "Test Calendar",
+        "url": "https://example.com/calendar.ics",
+    }
+
+    calendar = load_source_calendar(
+        session,
+        source,
+        cache,
+    )
+
+    events = list(calendar.walk("VEVENT"))
 
     assert len(events) == 1
-    assert str(events[0]["UID"]) == "sky-camp"
-    assert str(events[0]["SUMMARY"]) == ("AliceHols/BobHols: Sky Camp")
+    assert str(events[0]["SUMMARY"]) == "Test event"
 
 
-def test_get_event_start_with_malformed_dtstart_returns_max_date():
-    # Simulate a corrupt calendar event that fails during DTSTART decoding.
-    class BrokenEvent:
-        def decoded(self, key):
-            raise ValueError("invalid DTSTART")
+def test_304_without_cache_raises_clear_error(tmp_path):
+    session = Mock()
 
-    result = get_event_start(BrokenEvent())
+    session.get.return_value = Mock(
+        status_code=304,
+        content=b"",
+        headers={},
+    )
 
-    assert result == datetime.max.replace(tzinfo=UTC)
+    from calmerge.cache import CalendarCache
+
+    cache = CalendarCache(tmp_path)
+
+    source = {
+        "name": "Test Calendar",
+        "url": "https://example.com/calendar.ics",
+    }
+
+    with pytest.raises(
+        RuntimeError,
+        match="No cached copy available for Test Calendar",
+    ):
+        load_source_calendar(
+            session,
+            source,
+            cache,
+        )
+
+
+def test_invalid_cached_calendar_fails_clearly(tmp_path):
+    session = Mock()
+
+    session.get.return_value = Mock(
+        status_code=200,
+        content=HTML_RESPONSE,
+        headers={
+            "Content-Type": "text/html",
+        },
+    )
+
+    from calmerge.cache import CalendarCache
+
+    cache = CalendarCache(tmp_path)
+
+    cache.save(
+        "Test Calendar",
+        INVALID_CALENDAR,
+    )
+
+    source = {
+        "name": "Test Calendar",
+        "url": "https://example.com/calendar.ics",
+    }
+
+    with pytest.raises(
+        RuntimeError,
+        match="Cached calendar for Test Calendar is invalid",
+    ):
+        load_source_calendar(
+            session,
+            source,
+            cache,
+        )

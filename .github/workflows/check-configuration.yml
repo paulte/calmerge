@@ -37,6 +37,7 @@ jobs:
         with:
           repository: paulte/calmerge
           path: .calmerge
+          ref: <CALMERGE_SHA>
 
       - name: Set up Python
         if: steps.config.outputs.has_config == 'true'

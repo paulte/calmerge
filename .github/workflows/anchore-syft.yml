@@ -14,8 +14,6 @@ permissions:
 
 jobs:
   Anchore-SBOM:
-    permissions:
-      contents: write
     runs-on: ubuntu-latest
 
     steps:

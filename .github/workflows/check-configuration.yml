@@ -48,7 +48,7 @@ jobs:
         if: steps.config.outputs.has_config == 'true'
         working-directory: .calmerge
         run: |
-          python -m pip install --require-hashes -r requirements-ci.txt
+          python -m pip install --require-hashes -r .github/requirements-ci.txt
           python -m pip install --no-deps -e .
 
       - name: Validate calendars.yaml

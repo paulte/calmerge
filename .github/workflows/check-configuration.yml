@@ -59,7 +59,7 @@ jobs:
 
       - name: Check YAML
         run: |
-          yamllint
+          yamllint .
 
       - name: Install actionlint
         run: |

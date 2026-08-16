@@ -23,12 +23,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-         ref: ${{ github.event_name == 'pull_request' && github.head_ref || '' }}
- 
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || '' }}
+
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-        python-version: "3.14"
+          python-version: "3.14"
 
       - name: Install development dependencies
         run: python -m pip install --require-hashes -r requirements-dev.txt
@@ -50,7 +50,7 @@ jobs:
             echo "No automatic fixes required"
             exit 0
           fi
- 
+
           # Skip commit/push for pull requests from forks (no write access)
           if [ "$EVENT_NAME" = "pull_request" ] && [ "$HEAD_REPO_FULL_NAME" != "$BASE_REPO" ]; then
             echo "Automatic fixes needed but skipping commit for fork PR (no write access)"
@@ -60,7 +60,7 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
- 
+
           git add .
           git commit -m "style: apply automatic lint fixes"
 
@@ -70,14 +70,15 @@ jobs:
           else
             git push
           fi
- 
-     - name: Check Python formatting
-        run: ruff format --check .
-     - name: Run Ruff lint
-       run: ruff check .
 
-     - name: Lint YAML
-       run: yamllint .
+      - name: Check Python formatting
+        run: ruff format --check .
+
+      - name: Run Ruff lint
+        run: ruff check .
+
+      - name: Lint YAML
+        run: yamllint .
 
       - name: Check GitHub Actions workflows
         uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0

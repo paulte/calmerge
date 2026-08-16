@@ -9,7 +9,7 @@
 
 `calmerge` downloads multiple iCalendar (ICS) feeds, optionally applies configurable exclusion rules, merges them into a single calendar, and writes the result as a new ICS file to be shared via a web server / CDN etc
 
-When multiple source calendars contain the same event (matching `UID`), `calmerge` combines them into a single calendar entry rather than outputting duplicates. Calendar prefixes from all matching sources are combined into the event summary, for example:
+When multiple source calendars contain the same event (matching UID), `calmerge` combines them into a single calendar entry rather than outputting duplicates. Calendar prefixes from all matching sources are combined into the event summary, for example:
 
 PersonAlice/PersonBob: Shared event
 
@@ -75,8 +75,7 @@ A Cloudflare example follows:
 - Your browser should download the merged ics file.
 - Copy this URL and subscribe in your calendar apps, for example `https://calmerge-config.pages.dev/public/ac1f7e02-b0df-4596-9ebb-259c8c775412/events.ics`
 
-At this point, your configuration is complete. As one last check, perform a dummy change and commit such as changing the prefix for a calendar.
-
+At this point, your configuration is complete. As one last check, perform a dummy repository change such as changing the prefix for a calendar within `calendar.yaml`.
 - Check GitHub actions - you should notice a recently executed workflow running to green and notice an updated `calendars/merged.ics` file in the repo
 - Check Cloudflare. You should notice the git commit being absorbed and the merged.ics calendar being published
 
@@ -168,7 +167,7 @@ Calendar events can optionally be excluded during the merge process using config
 
 Exclusion rules support regular expression matching against calendar and event attributes. Multiple conditions within a rule are combined using AND logic, and multiple rules are combined using OR logic.
 
-The recommended approach is to maintain exclusions within your private configuration repository rather than this public application repository.
+See https://github.com/paulte/calmerge.exampleprivaterepo/blob/main/calendars.example.yaml for examples of how to exclude events
 
 ______________________________________________________________________
 

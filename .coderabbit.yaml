@@ -1,0 +1,343 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+language: "en-GB"
+
+reviews:
+  profile: "chill"
+
+  request_changes_workflow: false
+
+  high_level_summary: true
+  review_status: true
+  poem: false
+  in_progress_fortune: false
+
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    drafts: false
+
+#    ignore_usernames:
+#      - "dependabot[bot]"
+#      - "renovate[bot]"
+
+    ignore_title_keywords:
+      - "WIP"
+      - "[skip review]"
+
+  path_filters:
+    - "!dist/**"
+    - "!**/__pycache__/**"
+    - "!**/.pytest_cache/**"
+    - "!**/.coverage"
+
+  path_instructions:
+
+    # ------------------------------------------------------------------
+    # Global language and review behaviour
+    # ------------------------------------------------------------------
+    - path: "**/*"
+      instructions: |
+        Use British English in all review comments, summaries, walkthroughs,
+        explanations and suggestions.
+
+        Use British spelling and terminology consistently. In particular,
+        prefer:
+        - behaviour, not behavior
+        - colour, not color
+        - organisation, not organization
+        - initialise, not initialize
+        - serialise, not serialize
+        - optimise, not optimize
+        - analyse, not analyze
+        - centre, not center
+        - licence when used as a noun; license when used as a verb
+
+        Do not change spelling or terminology in source code, identifiers,
+        dependency names, API names, quoted text, filenames or external
+        project names merely to enforce British English.
+
+        Review for real problems rather than stylistic preferences.
+
+        Do not raise a review comment merely because code could be written
+        differently.
+
+        Prioritise:
+        1. Correctness.
+        2. Security.
+        3. Data integrity.
+        4. Reliability and failure handling.
+        5. Test coverage.
+        6. Maintainability.
+
+        Avoid speculative refactoring unless there is a concrete benefit.
+
+        Do not duplicate findings that are normally handled by linters,
+        formatters or other automated checks.
+
+    # ------------------------------------------------------------------
+    # Python application code
+    # ------------------------------------------------------------------
+    - path: "src/**/*.py"
+      instructions: |
+        Review this as production Python code.
+
+        Priorities, in order:
+        1. Correctness and behavioural regressions.
+        2. Error handling and failure modes.
+        3. Security issues.
+        4. Data integrity.
+        5. Resource handling and network behaviour.
+        6. Maintainability.
+        7. Pythonic behaviour and standards
+
+        Calmerge processes iCalendar (.ics) data. Pay particular attention to:
+
+        - malformed or unexpected calendar data
+        - missing or malformed DTSTART and DTEND values
+        - timezone handling
+        - duplicate events
+        - UID stability and determinism
+        - preservation of valid iCalendar semantics
+        - accidental loss or modification of calendar properties
+        - network failures
+        - HTTP errors and invalid responses
+        - timeouts
+        - downloaded content that is not actually an iCalendar file
+        - unsafe assumptions about downloaded content
+        - incorrect handling of character encodings
+        - resource leaks
+
+        When reviewing downloader code, consider whether the remote response
+        is actually a valid calendar before treating it as one.
+
+        When reviewing UID generation, check that the result remains
+        deterministic and stable for the same source event.
+
+        Do not flag minor stylistic issues that are already enforced by
+        formatters, linters or pre-commit.
+
+        Do not suggest speculative refactoring unless it addresses a real
+        correctness, security, reliability or maintainability problem.
+
+    # ------------------------------------------------------------------
+    # Tests
+    # ------------------------------------------------------------------
+    - path: "tests/**/*.py"
+      instructions: |
+        Review tests primarily for whether they actually prove the intended
+        behaviour.
+
+        Pay particular attention to:
+
+        - meaningful assertions rather than merely executing code
+        - missing edge cases
+        - failure paths
+        - exception handling
+        - malformed iCalendar input
+        - invalid downloaded content
+        - HTTP/network failures
+        - timezone-aware and timezone-naive dates where relevant
+        - duplicate events
+        - deterministic UID generation
+        - regression coverage for changed production behaviour
+        - tests that could pass even when the production code is broken
+
+        Prefer focused tests over excessive mocking.
+
+        If a production change introduces meaningful untested behaviour,
+        identify the missing test and explain the scenario that should be
+        covered.
+
+        Do not request tests merely to increase a coverage percentage when
+        the existing tests adequately demonstrate the behaviour.
+
+        Do not complain about test implementation style unless it materially
+        affects test reliability or maintainability.
+
+    # ------------------------------------------------------------------
+    # GitHub Actions
+    # ------------------------------------------------------------------
+    - path: ".github/workflows/**/*.yml"
+      instructions: |
+        Review GitHub Actions as production CI/CD infrastructure.
+
+        Pay particular attention to:
+
+        - incorrect workflow triggers
+        - reusable workflow inputs and outputs
+        - job dependencies
+        - job conditions
+        - permissions
+        - checkout repository, ref and path behaviour
+        - pinned GitHub Actions
+        - SHA pinning and version comments
+        - dependency installation
+        - Python version consistency
+        - working-directory mistakes
+        - secrets exposure
+        - shell injection risks
+        - caching mistakes
+        - failures hidden by continue-on-error
+        - incorrect use of GitHub expressions
+        - failures caused by differences between repositories
+        - reusable workflow behaviour
+
+        Calmerge has both a public application repository and repositories
+        consuming its reusable workflows. Pay particular attention to
+        assumptions about which repository is checked out and which branch
+        or commit is being used.
+
+        Treat changes to permissions, checkout refs, reusable workflows and
+        dependency installation as high-value review areas.
+
+        Do not flag an action merely because it is pinned to a commit SHA.
+        SHA pinning is intentional in this repository.
+
+        Do not suggest replacing pinned actions with mutable version tags.
+
+    # ------------------------------------------------------------------
+    # GitHub Actions YAML using .yaml
+    # ------------------------------------------------------------------
+    - path: ".github/workflows/**/*.yaml"
+      instructions: |
+        Review GitHub Actions as production CI/CD infrastructure.
+
+        Pay particular attention to:
+
+        - workflow triggers
+        - reusable workflow calls
+        - job dependencies
+        - permissions
+        - checkout repository, ref and path behaviour
+        - pinned GitHub Actions
+        - SHA pinning
+        - Python version consistency
+        - working-directory mistakes
+        - secrets exposure
+        - GitHub expression evaluation
+        - shell injection risks
+
+        Do not flag formatting or stylistic YAML issues that yamllint
+        already handles.
+
+        Do not suggest replacing SHA-pinned actions with mutable tags.
+
+    # ------------------------------------------------------------------
+    # General YAML configuration
+    # ------------------------------------------------------------------
+    - path: "**/*.yaml"
+      instructions: |
+        Review YAML for correctness and behavioural problems.
+
+        Do not spend review comments on formatting or stylistic issues that
+        yamllint already catches.
+
+        Pay particular attention to:
+
+        - incorrect data types
+        - indentation that changes meaning
+        - values that silently change behaviour
+        - configuration that is inconsistent with the Python implementation
+        - accidental changes to defaults
+
+    - path: "**/*.yml"
+      instructions: |
+        Review YAML for correctness and behavioural problems.
+
+        Do not spend review comments on formatting or stylistic issues that
+        yamllint already catches.
+
+        For GitHub Actions files, prioritise workflow semantics, expressions,
+        permissions, dependencies and reusable workflow behaviour.
+
+    # ------------------------------------------------------------------
+    # pyproject.toml
+    # ------------------------------------------------------------------
+    - path: "pyproject.toml"
+      instructions: |
+        Review changes for:
+
+        - Python version compatibility
+        - dependency correctness
+        - packaging behaviour
+        - build configuration
+        - test configuration
+        - development dependency separation
+        - installation behaviour
+
+        Pay particular attention to changes that make the project installable
+        in CI but no longer installable in a normal development environment,
+        or vice versa.
+
+        Check that changes are consistent with the project's supported Python
+        version.
+
+    # ------------------------------------------------------------------
+    # Requirements files
+    # ------------------------------------------------------------------
+    - path: "requirements*.txt"
+      instructions: |
+        Review dependency changes for:
+
+        - accidental dependency removal
+        - incompatible version constraints
+        - inconsistent requirements between development and CI
+        - unnecessary dependencies
+        - security implications
+        - reproducibility problems
+
+        Do not request manual hash changes when those files are intentionally
+        maintained by dependency-management tooling.
+
+        Treat dependency hashes as intentional security and reproducibility
+        controls.
+
+    # ------------------------------------------------------------------
+    # Makefile
+    # ------------------------------------------------------------------
+    - path: "Makefile"
+      instructions: |
+        Review changes for:
+
+        - commands that do not work on a clean checkout
+        - incorrect paths
+        - incorrect Python or virtual-environment assumptions
+        - divergence between local development and CI
+        - destructive commands
+        - targets whose names imply behaviour they do not actually perform
+
+        Pay particular attention to commands used by GitHub Actions.
+
+    # ------------------------------------------------------------------
+    # Configuration files
+    # ------------------------------------------------------------------
+    - path: "*.yaml"
+      instructions: |
+        Review project configuration for correctness and consistency with the
+        Python implementation.
+
+        Pay particular attention to calendar configuration, URLs, exclusion
+        rules and values that could cause calendars or events to be silently
+        omitted.
+
+    # ------------------------------------------------------------------
+    # Documentation
+    # ------------------------------------------------------------------
+    - path: "**/*.md"
+      instructions: |
+        Check documentation for factual consistency with the implementation.
+
+        Priorities:
+
+        - commands that actually work
+        - correct filenames and paths
+        - correct Python versions
+        - correct CI behaviour
+        - correct installation instructions
+        - correct configuration examples
+
+        Do not make stylistic documentation suggestions unless they affect
+        clarity or correctness.
+
+        Use British English throughout review comments and suggestions.

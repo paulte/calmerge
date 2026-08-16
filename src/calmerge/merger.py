@@ -90,6 +90,10 @@ def get_event_start(event) -> datetime:
         return datetime.max.replace(tzinfo=UTC)
 
 
+def format_event_start(event) -> str:
+    return get_event_start(event).strftime("%Y-%m-%d")
+
+
 def process_event(
     component,
     source: dict[str, Any],
@@ -113,7 +117,11 @@ def process_event(
             source["color"],
         )
 
-    logger.info(f"Processing:{event.get(SUMMARY)}")
+    logger.info(
+        "Processing: %s [%s]",
+        event.get(SUMMARY),
+        format_event_start(event),
+    )
 
     return {
         "event": event,
@@ -221,8 +229,10 @@ def merge_calendars(
                     else:
                         existing = merged_events[uid]
                         logger.info(
-                            "Merging duplicate event '%s' from %s into %s",
+                            "Merging duplicate event '%s' [%s] "
+                            "from %s into %s",
                             event.get(SUMMARY),
+                            format_event_start(event),
                             result["source"],
                             ", ".join(existing["sources"]),
                         )

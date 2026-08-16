@@ -7,11 +7,13 @@ from urllib.parse import urlparse
 
 import yaml
 
+
 @dataclass
 class AppPaths:
     config_file: Path
     output_dir: Path
     cache_dir: Path
+
 
 def parse_args() -> AppPaths:
     parser = argparse.ArgumentParser(
@@ -46,6 +48,7 @@ def parse_args() -> AppPaths:
         cache_dir=args.cache,
         output_dir=args.output,
     )
+
 
 def load_config(
     config_file: Path,

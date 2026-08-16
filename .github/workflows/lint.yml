@@ -44,6 +44,7 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           HEAD_REF: ${{ github.head_ref }}
+          REF_NAME: ${{ github.ref_name }}
           HEAD_REPO_FULL_NAME: ${{ github.event.pull_request.head.repo.full_name }}
           BASE_REPO: ${{ github.repository }}
         run: |
@@ -65,11 +66,11 @@ jobs:
           git add .
           git commit -m "style: apply automatic lint fixes"
 
-          # Push to the correct branch (head_ref for PRs, current branch for pushes)
+          # Push to the correct branch
           if [ "$EVENT_NAME" = "pull_request" ]; then
             git push origin "HEAD:$HEAD_REF"
           else
-            git push
+            git push origin "HEAD:$REF_NAME"
           fi
 
       - name: Check Python formatting

@@ -106,7 +106,7 @@ def matches_event(
                 # event object; narrow the exceptions we catch so unexpected
                 # errors still surface during development.
                 value = event.decoded(key)
-            except (KeyError, AttributeError, TypeError):
+            except KeyError, AttributeError, TypeError:
                 # Field missing or not decodable: rule does not match
                 return False
 

@@ -310,7 +310,18 @@ def test_parse_iso_date_rejects_date_with_z_suffix():
         _parse_iso_date_or_datetime("2026-01-01Z")
 
 
-def test_validate_config_rejects_invalid_min_date_with_z():
+@pytest.mark.parametrize("field", ["dtstart", "dtend"])
+@pytest.mark.parametrize("bound", ["min", "max"])
+@pytest.mark.parametrize(
+    "value",
+    [
+        "2026-01-01",
+        "2026-01-01T12:00:00",
+        "2026-01-01T12:00:00Z",
+        "2026-01-01T12:00:00+05:00",
+    ],
+)
+def test_validate_config_accepts_valid_event_date_bounds(field, bound, value):
     config = {
         "calendars": [
             {
@@ -323,34 +334,8 @@ def test_validate_config_rejects_invalid_min_date_with_z():
                 {
                     "id": "date-range-rule",
                     "event": {
-                        "dtstart": {
-                            "min": "2026-01-01Z",
-                        },
-                    },
-                },
-            ],
-        },
-    }
-
-    with pytest.raises(ValueError, match="Invalid min"):
-        validate_config(config)
-
-
-def test_validate_config_accepts_valid_min_datetime_with_z():
-    config = {
-        "calendars": [
-            {
-                "name": "Test Calendar",
-                "url": "https://example.com/calendar.ics",
-            },
-        ],
-        "exclusions": {
-            "rules": [
-                {
-                    "id": "date-range-rule",
-                    "event": {
-                        "dtstart": {
-                            "min": "2026-01-01T00:00:00Z",
+                        field: {
+                            bound: value,
                         },
                     },
                 },
@@ -361,7 +346,16 @@ def test_validate_config_accepts_valid_min_datetime_with_z():
     validate_config(config)
 
 
-def test_validate_config_rejects_invalid_max_date_with_z():
+@pytest.mark.parametrize("field", ["dtstart", "dtend"])
+@pytest.mark.parametrize("bound", ["min", "max"])
+@pytest.mark.parametrize(
+    "value",
+    [
+        "2026-01-01Z",
+        "not-a-date",
+    ],
+)
+def test_validate_config_rejects_invalid_event_date_bounds(field, bound, value):
     config = {
         "calendars": [
             {
@@ -374,8 +368,8 @@ def test_validate_config_rejects_invalid_max_date_with_z():
                 {
                     "id": "date-range-rule",
                     "event": {
-                        "dtstart": {
-                            "max": "2026-12-31Z",
+                        field: {
+                            bound: value,
                         },
                     },
                 },
@@ -383,30 +377,5 @@ def test_validate_config_rejects_invalid_max_date_with_z():
         },
     }
 
-    with pytest.raises(ValueError, match="Invalid max"):
+    with pytest.raises(ValueError, match=f"Invalid {bound}"):
         validate_config(config)
-
-
-def test_validate_config_accepts_valid_max_datetime_with_z():
-    config = {
-        "calendars": [
-            {
-                "name": "Test Calendar",
-                "url": "https://example.com/calendar.ics",
-            },
-        ],
-        "exclusions": {
-            "rules": [
-                {
-                    "id": "date-range-rule",
-                    "event": {
-                        "dtstart": {
-                            "max": "2026-12-31T23:59:59Z",
-                        },
-                    },
-                },
-            ],
-        },
-    }
-
-    validate_config(config)

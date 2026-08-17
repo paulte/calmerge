@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from calmerge.config import load_config, validate_config
+from calmerge.config import _parse_iso_date_or_datetime, load_config, validate_config
 
 
 def write_config(tmp_path: Path, content: dict) -> Path:
@@ -282,3 +282,131 @@ def test_validate_config_accepts_valid_exclusions():
     validate_config(
         config,
     )
+
+
+def test_parse_iso_date_accepts_valid_date_only():
+    # Valid date-only format
+    _parse_iso_date_or_datetime("2026-01-01")
+
+
+def test_parse_iso_date_accepts_valid_datetime():
+    # Valid datetime without timezone
+    _parse_iso_date_or_datetime("2026-01-01T12:00:00")
+
+
+def test_parse_iso_date_accepts_valid_datetime_with_z():
+    # Valid datetime with Z suffix
+    _parse_iso_date_or_datetime("2026-01-01T12:00:00Z")
+
+
+def test_parse_iso_date_accepts_valid_datetime_with_offset():
+    # Valid datetime with numeric offset
+    _parse_iso_date_or_datetime("2026-01-01T12:00:00+05:00")
+
+
+def test_parse_iso_date_rejects_date_with_z_suffix():
+    # Invalid: date-only string with Z suffix
+    with pytest.raises(ValueError, match="Invalid ISO date/datetime"):
+        _parse_iso_date_or_datetime("2026-01-01Z")
+
+
+def test_validate_config_rejects_invalid_min_date_with_z():
+    config = {
+        "calendars": [
+            {
+                "name": "Test Calendar",
+                "url": "https://example.com/calendar.ics",
+            },
+        ],
+        "exclusions": {
+            "rules": [
+                {
+                    "id": "date-range-rule",
+                    "event": {
+                        "dtstart": {
+                            "min": "2026-01-01Z",
+                        },
+                    },
+                },
+            ],
+        },
+    }
+
+    with pytest.raises(ValueError, match="Invalid min"):
+        validate_config(config)
+
+
+def test_validate_config_accepts_valid_min_datetime_with_z():
+    config = {
+        "calendars": [
+            {
+                "name": "Test Calendar",
+                "url": "https://example.com/calendar.ics",
+            },
+        ],
+        "exclusions": {
+            "rules": [
+                {
+                    "id": "date-range-rule",
+                    "event": {
+                        "dtstart": {
+                            "min": "2026-01-01T00:00:00Z",
+                        },
+                    },
+                },
+            ],
+        },
+    }
+
+    validate_config(config)
+
+
+def test_validate_config_rejects_invalid_max_date_with_z():
+    config = {
+        "calendars": [
+            {
+                "name": "Test Calendar",
+                "url": "https://example.com/calendar.ics",
+            },
+        ],
+        "exclusions": {
+            "rules": [
+                {
+                    "id": "date-range-rule",
+                    "event": {
+                        "dtstart": {
+                            "max": "2026-12-31Z",
+                        },
+                    },
+                },
+            ],
+        },
+    }
+
+    with pytest.raises(ValueError, match="Invalid max"):
+        validate_config(config)
+
+
+def test_validate_config_accepts_valid_max_datetime_with_z():
+    config = {
+        "calendars": [
+            {
+                "name": "Test Calendar",
+                "url": "https://example.com/calendar.ics",
+            },
+        ],
+        "exclusions": {
+            "rules": [
+                {
+                    "id": "date-range-rule",
+                    "event": {
+                        "dtstart": {
+                            "max": "2026-12-31T23:59:59Z",
+                        },
+                    },
+                },
+            ],
+        },
+    }
+
+    validate_config(config)

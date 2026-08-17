@@ -58,9 +58,7 @@ def test_max_excludes_after_max():
 
 
 def test_max_includes_at_max_boundary():
-    event = create_event_with_dtstart(
-        datetime(2026, 8, 19, 23, 59, 59, tzinfo=UTC)
-    )
+    event = create_event_with_dtstart(datetime(2026, 8, 19, 23, 59, 59, tzinfo=UTC))
 
     matcher = {
         "dtstart": {

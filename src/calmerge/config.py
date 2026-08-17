@@ -155,6 +155,10 @@ def _parse_iso_date_or_datetime(value: str) -> None:
 
     s = value
     if s.endswith("Z"):
+        # Z suffix is only valid for datetime strings (must contain 'T')
+        # Date-only strings like "2026-01-01Z" are invalid
+        if "T" not in s:
+            raise ValueError(f"Invalid ISO date/datetime: {value}")
         s = s[:-1] + "+00:00"
 
     try:

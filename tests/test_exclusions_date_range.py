@@ -35,7 +35,6 @@ def test_min_excludes_before_min():
 def test_min_includes_at_min_boundary():
     # Event exactly at the 2026-08-11 UTC min boundary
     event = create_event_with_dtstart(datetime(2026, 8, 11, 0, 0, tzinfo=UTC))
-
     matcher = {
         "dtstart": {
             "min": "2026-08-11",
@@ -77,7 +76,6 @@ def test_min_only_includes_event_after_min():
             "min": "2026-08-11",
         }
     }
-
     assert matches_event(event, matcher) is True
 
 
@@ -95,7 +93,6 @@ def test_max_only_includes_event_before_max():
 
 def test_min_max_includes_within_range():
     event = create_event_with_dtstart(datetime(2026, 8, 15, 9, 0, tzinfo=UTC))
-
     matcher = {
         "dtstart": {
             "min": "2026-08-10",
@@ -151,7 +148,6 @@ def test_date_only_dtstart_outside_range_does_not_match():
 
 def test_invalid_min_string_treated_as_non_match():
     event = create_event_with_dtstart(datetime(2026, 8, 10, 12, 0, tzinfo=UTC))
-
     matcher = {
         "dtstart": {
             "min": "not-a-date",
@@ -188,9 +184,8 @@ def test_undecodable_field_fails_match():
 
 def test_naive_dtstart_with_utc_z_bounds():
     # Naive datetime should be normalized to UTC internally
-    naive_dt = datetime(2026, 8, 10, 8, 0, 0, tzinfo=UTC)
+    naive_dt = datetime(2026, 8, 10, 8, 0, 0)  # noqa: DTZ001
     event = create_event_with_dtstart(naive_dt)
-
     matcher = {
         "dtstart": {
             "min": "2026-08-10T08:00:00Z",
@@ -203,9 +198,8 @@ def test_naive_dtstart_with_utc_z_bounds():
 
 def test_naive_dtstart_with_offset_bounds():
     # 10:00+02:00 == 08:00Z, so the event at 08:00 UTC should be inside this range
-    naive_dt = datetime(2026, 8, 10, 8, 0, 0, tzinfo=UTC)
+    naive_dt = datetime(2026, 8, 10, 8, 0, 0)  # noqa: DTZ001
     event = create_event_with_dtstart(naive_dt)
-
     matcher = {
         "dtstart": {
             "min": "2026-08-10T10:00:00+02:00",

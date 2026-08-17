@@ -359,3 +359,54 @@ def test_validate_config_accepts_valid_min_datetime_with_z():
     }
 
     validate_config(config)
+
+
+def test_validate_config_rejects_invalid_max_date_with_z():
+    config = {
+        "calendars": [
+            {
+                "name": "Test Calendar",
+                "url": "https://example.com/calendar.ics",
+            },
+        ],
+        "exclusions": {
+            "rules": [
+                {
+                    "id": "date-range-rule",
+                    "event": {
+                        "dtstart": {
+                            "max": "2026-12-31Z",
+                        },
+                    },
+                },
+            ],
+        },
+    }
+
+    with pytest.raises(ValueError, match="Invalid max"):
+        validate_config(config)
+
+
+def test_validate_config_accepts_valid_max_datetime_with_z():
+    config = {
+        "calendars": [
+            {
+                "name": "Test Calendar",
+                "url": "https://example.com/calendar.ics",
+            },
+        ],
+        "exclusions": {
+            "rules": [
+                {
+                    "id": "date-range-rule",
+                    "event": {
+                        "dtstart": {
+                            "max": "2026-12-31T23:59:59Z",
+                        },
+                    },
+                },
+            ],
+        },
+    }
+
+    validate_config(config)

@@ -131,6 +131,10 @@ def test_date_only_dtstart_matches_range():
 
     assert matches_event(event, matcher) is True
 
+    # Verify maximum boundary is also inclusive
+    event_at_max = create_event_with_date_dtstart(date(2026, 8, 20))
+    assert matches_event(event_at_max, matcher) is True
+
 
 def test_date_only_dtstart_outside_range_does_not_match():
     event = create_event_with_date_dtstart(date(2026, 8, 21))

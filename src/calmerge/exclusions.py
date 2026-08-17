@@ -42,12 +42,21 @@ def matches_calendar(
 
 
 def _parse_datetime_string(value: str) -> datetime:
-    # Accept ISO-8601 datetimes with Z or offset, or date-only strings (YYYY-MM-DD)
+    """Parse an ISO-8601 date/time or date string into an aware UTC datetime.
+
+    Accepted forms:
+      - Date-only: "YYYY-MM-DD" -> interpreted as YYYY-MM-DDT00:00:00Z
+      - Datetime with Z: "YYYY-MM-DDTHH:MM:SSZ"
+      - Datetime with offset: "YYYY-MM-DDTHH:MM:SS+HH:MM"
+      - ISO datetimes without timezone are treated as UTC (explicit design choice)
+
+    Raises ValueError on parse failure.
+    """
     if not value:
         raise ValueError("empty datetime string")
 
     s = value
-    # Handle trailing Z as UTC
+    # Handle trailing Z as UTC for fromisoformat compatibility
     if s.endswith("Z"):
         s = s[:-1] + "+00:00"
 
@@ -60,6 +69,7 @@ def _parse_datetime_string(value: str) -> datetime:
         dt = datetime.combine(d, time.min)
         dt = dt.replace(tzinfo=timezone.utc)
 
+    # If dt is naive, treat as UTC (explicit, documented behaviour)
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
 
@@ -92,23 +102,27 @@ def matches_event(
             key = field.upper()
 
             try:
+                # Decoding can raise a variety of exceptions depending on the
+                # event object; narrow the exceptions we catch so unexpected
+                # errors still surface during development.
                 value = event.decoded(key)
-
-                # If it's a date, normalise to datetime at start of day
-                if isinstance(value, date) and not isinstance(value, datetime):
-                    value = datetime.combine(value, time.min)
-
-                if isinstance(value, datetime) and value.tzinfo is None:
-                    value = value.replace(tzinfo=timezone.utc)
-
-            except Exception:  # noqa: BLE001
-                # If we cannot decode the event field, the condition does not match
+            except (KeyError, AttributeError, TypeError):
+                # Field missing or not decodable: rule does not match
                 return False
+
+            # If it's a date, normalise to datetime at start of day
+            if isinstance(value, date) and not isinstance(value, datetime):
+                value = datetime.combine(value, time.min)
+
+            # If datetime is naive, treat it as UTC (explicit choice)
+            if isinstance(value, datetime) and value.tzinfo is None:
+                value = value.replace(tzinfo=timezone.utc)
 
             if "min" in condition:
                 try:
                     min_dt = _parse_datetime_string(condition["min"])
-                except Exception:
+                except ValueError:
+                    # Misconfigured min value -> treat as non-match
                     return False
 
                 if value < min_dt:
@@ -117,7 +131,8 @@ def matches_event(
             if "max" in condition:
                 try:
                     max_dt = _parse_datetime_string(condition["max"])
-                except Exception:
+                except ValueError:
+                    # Misconfigured max value -> treat as non-match
                     return False
 
                 if value > max_dt:

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import re
+from datetime import UTC, date, datetime, time
 from typing import Any
-from datetime import datetime, date, time, timezone
 
 
 def should_exclude_event(
@@ -67,11 +67,11 @@ def _parse_datetime_string(value: str) -> datetime:
         # Fallback to date-only
         d = date.fromisoformat(s)
         dt = datetime.combine(d, time.min)
-        dt = dt.replace(tzinfo=timezone.utc)
+        dt = dt.replace(tzinfo=UTC)
 
     # If dt is naive, treat as UTC (explicit, documented behaviour)
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
+        dt = dt.replace(tzinfo=UTC)
 
     return dt
 
@@ -106,7 +106,7 @@ def matches_event(
                 # event object; narrow the exceptions we catch so unexpected
                 # errors still surface during development.
                 value = event.decoded(key)
-            except (KeyError, AttributeError, TypeError):
+            except KeyError, AttributeError, TypeError:
                 # Field missing or not decodable: rule does not match
                 return False
 
@@ -116,7 +116,7 @@ def matches_event(
 
             # If datetime is naive, treat it as UTC (explicit choice)
             if isinstance(value, datetime) and value.tzinfo is None:
-                value = value.replace(tzinfo=timezone.utc)
+                value = value.replace(tzinfo=UTC)
 
             if "min" in condition:
                 try:

@@ -106,7 +106,7 @@ def matches_event(
                 # event object; narrow the exceptions we catch so unexpected
                 # errors still surface during development.
                 value = event.decoded(key)
-            except KeyError, AttributeError, TypeError:
+            except (KeyError, AttributeError, TypeError):
                 # Field missing or not decodable: rule does not match
                 return False
 
@@ -117,6 +117,11 @@ def matches_event(
             # If datetime is naive, treat it as UTC (explicit choice)
             if isinstance(value, datetime) and value.tzinfo is None:
                 value = value.replace(tzinfo=UTC)
+
+            # If the decoded value is not a date/datetime, fail-safe and do
+            # not match this rule (avoids unexpected type errors below).
+            if not isinstance(value, datetime):
+                return False
 
             if "min" in condition:
                 try:
@@ -140,7 +145,9 @@ def matches_event(
 
             continue
 
-        # Unknown condition type, fail safe and do not match
-        return False
+        # Unknown condition type: ignore and continue rather than forcing a
+        # non-match. This preserves backwards compatibility for matcher
+        # entries that contain other metadata we don't currently handle.
+        continue
 
     return True

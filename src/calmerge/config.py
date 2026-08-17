@@ -1,6 +1,7 @@
 import argparse
 import re
 from dataclasses import dataclass
+from datetime import datetime, date
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -138,6 +139,35 @@ def get_exclusion_rules(
     )
 
 
+def _parse_iso_date_or_datetime(value: str) -> None:
+    """Validate that a string is a valid ISO date or datetime.
+
+    Accepts:
+      - YYYY-MM-DD
+      - YYYY-MM-DDTHH:MM:SS
+      - YYYY-MM-DDTHH:MM:SSZ
+      - YYYY-MM-DDTHH:MM:SS+HH:MM
+
+    Raises ValueError if invalid.
+    """
+    if not isinstance(value, str) or not value:
+        raise ValueError("empty date/datetime string")
+
+    s = value
+    if s.endswith("Z"):
+        s = s[:-1] + "+00:00"
+
+    try:
+        # Try datetime first
+        datetime.fromisoformat(s)
+    except ValueError:
+        # Fallback to date-only
+        try:
+            date.fromisoformat(value)
+        except ValueError as exc:
+            raise ValueError(f"Invalid ISO date/datetime: {value}") from exc
+
+
 def validate_exclusions(
     exclusions: dict[str, Any],
 ) -> None:
@@ -145,6 +175,9 @@ def validate_exclusions(
         "rules",
         [],
     )
+
+    if not isinstance(rules, list):
+        raise TypeError("exclusions.rules must be a list")
 
     for rule in rules:
         if "id" not in rule:
@@ -158,17 +191,66 @@ def validate_exclusions(
                 {},
             )
 
-            for field, matcher in conditions.items():
-                regex = matcher.get("regex")
+            if not isinstance(conditions, dict):
+                raise TypeError(
+                    f"Exclusion rule {rule.get('id')} {section} must be a mapping"
+                )
 
-                if not regex:
-                    raise ValueError(
-                        f"Exclusion rule {rule['id']} {section}.{field} missing regex",
+            for field, matcher in conditions.items():
+                if not isinstance(matcher, dict):
+                    raise TypeError(
+                        f"Exclusion rule {rule['id']} {section}.{field} matcher must be a mapping"
                     )
 
-                try:
-                    re.compile(regex)
-                except re.error as exc:
-                    raise ValueError(
-                        f"Invalid regex in exclusion rule {rule['id']}: {regex}",
-                    ) from exc
+                # Calendar matchers must be regex-based
+                if section == "calendar":
+                    regex = matcher.get("regex")
+
+                    if not regex:
+                        raise ValueError(
+                            f"Exclusion rule {rule['id']} {section}.{field} missing regex",
+                        )
+
+                    try:
+                        re.compile(regex)
+                    except re.error as exc:
+                        raise ValueError(
+                            f"Invalid regex in exclusion rule {rule['id']}: {regex}",
+                        ) from exc
+
+                    continue
+
+                # Event matchers may be regex or range (min/max)
+                if "regex" in matcher:
+                    regex = matcher.get("regex")
+
+                    if not regex:
+                        raise ValueError(
+                            f"Exclusion rule {rule['id']} {section}.{field} missing regex",
+                        )
+
+                    try:
+                        re.compile(regex)
+                    except re.error as exc:
+                        raise ValueError(
+                            f"Invalid regex in exclusion rule {rule['id']}: {regex}",
+                        ) from exc
+
+                    continue
+
+                if "min" in matcher or "max" in matcher:
+                    for bound in ("min", "max"):
+                        if bound in matcher:
+                            try:
+                                _parse_iso_date_or_datetime(matcher[bound])
+                            except ValueError as exc:
+                                raise ValueError(
+                                    f"Invalid {bound} in exclusion rule {rule['id']}: {matcher[bound]}",
+                                ) from exc
+
+                    continue
+
+                # Unknown matcher type for event - treat as misconfiguration
+                raise ValueError(
+                    f"Exclusion rule {rule['id']} {section}.{field} must contain 'regex' or 'min'/'max'",
+                )

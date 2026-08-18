@@ -22,5 +22,28 @@
 
   "labels": [
     "dependencies"
+  ],
+
+  "packageRules": [
+    {
+      "description": "Automerge patch and minor dependency updates",
+      "matchUpdateTypes": [
+        "patch",
+        "minor"
+      ],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Automerge GitHub Actions digest updates",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchUpdateTypes": [
+        "digest"
+      ],
+      "automerge": true,
+      "automergeType": "pr"
+    }
   ]
 }

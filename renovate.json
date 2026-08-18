@@ -26,24 +26,16 @@
 
   "packageRules": [
     {
-      "description": "Automerge patch and minor dependency updates",
+      "description": "Mark non-major dependency updates for automerge",
       "matchUpdateTypes": [
         "patch",
-        "minor"
-      ],
-      "automerge": true,
-      "automergeType": "pr"
-    },
-    {
-      "description": "Automerge GitHub Actions digest updates",
-      "matchManagers": [
-        "github-actions"
-      ],
-      "matchUpdateTypes": [
+        "pinDigest",
+        "minor",
         "digest"
       ],
-      "automerge": true,
-      "automergeType": "pr"
+      "addLabels": [
+        "automerge"
+      ]
     }
   ]
 }

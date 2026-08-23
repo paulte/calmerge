@@ -1,5 +1,6 @@
+---
 name: automerge
-on:
+"on":
   pull_request:
     types:
       - labeled
@@ -26,6 +27,6 @@ jobs:
     steps:
       - id: automerge
         name: automerge
-        uses: paulte/automerge-action@795b1c01104f10bc5ba5b5ebfb266442e88249cd # v1.0.2
+        uses: paulte/automerge-action@main
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

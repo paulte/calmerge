@@ -27,6 +27,6 @@ jobs:
     steps:
       - id: automerge
         name: automerge
-        uses: paulte/automerge-action@f787d0d2459959d8e5e0ddd195abe73de16e7a36 # main
+        uses: paulte/automerge-action@e725397135e101dd5350e6afd58cfb7584d31a66 # main
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

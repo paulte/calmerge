@@ -1,3 +1,4 @@
+---
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 
 language: "en-GB"
@@ -17,9 +18,9 @@ reviews:
     auto_incremental_review: true
     drafts: false
 
-#    ignore_usernames:
-#      - "dependabot[bot]"
-#      - "renovate[bot]"
+    #ignore_usernames:
+    #  - "dependabot[bot]"
+    #  - "renovate[bot]"
 
     ignore_title_keywords:
       - "WIP"

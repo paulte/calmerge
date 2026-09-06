@@ -6,6 +6,8 @@
     "helpers:pinGitHubActionDigests"
   ],
 
+  "rebaseWhen": "behind-base-branch",
+
   "enabledManagers": [
     "github-actions",
     "pep621",

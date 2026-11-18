@@ -734,7 +734,11 @@ urllib3==2.8.0 \
     --hash=sha256:0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3 \
     --hash=sha256:63bf2ead4c879426ebf22ef2a781eeb4aa3b4ae798a0435506f8687fd5bb9b63
     # via requests
-virtualenv
+virtualenv==20.35.4 \
+    --hash=sha256:4ef19a0c6f1a5c3a2a8b2a3b770f1b9dbb0154f7f43f8a1b0ea7e52a6f0f8f9a \
+    --hash=sha256:8c5b8b0d0d7618f7f5a43b6bba2f9b7d18e0a9f0ad7a4a2f3c2f1e0d9a8b7c6d
+    # via
+    #   pre-commit
 yamllint==1.38.0 \
     --hash=sha256:09e5f29531daab93366bb061e76019d5e91691ef0a40328f04c927387d1d364d \
     --hash=sha256:fc394a5b3be980a4062607b8fdddc0843f4fa394152b6da21722f5d59013c220

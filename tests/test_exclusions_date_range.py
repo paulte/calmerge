@@ -184,7 +184,7 @@ def test_undecodable_field_fails_match():
 
 def test_naive_dtstart_with_utc_z_bounds():
     # Naive datetime should be normalized to UTC internally
-    naive_dt = datetime(2026, 8, 10, 8, 0, 0)  # noqa: DTZ001
+    naive_dt = datetime(2026, 8, 10, 8, 0, 0)
     event = create_event_with_dtstart(naive_dt)
     matcher = {
         "dtstart": {
@@ -198,7 +198,7 @@ def test_naive_dtstart_with_utc_z_bounds():
 
 def test_naive_dtstart_with_offset_bounds():
     # 10:00+02:00 == 08:00Z, so the event at 08:00 UTC should be inside this range
-    naive_dt = datetime(2026, 8, 10, 8, 0, 0)  # noqa: DTZ001
+    naive_dt = datetime(2026, 8, 10, 8, 0, 0)
     event = create_event_with_dtstart(naive_dt)
     matcher = {
         "dtstart": {
